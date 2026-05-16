@@ -1,0 +1,55 @@
+<div class="tuner-container">
+  <!-- Metaballs background (reutilizando el estilo del menú) -->
+  <div class="metaballs-bg">
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+    <div class="blob blob3"></div>
+  </div>
+
+  <div class="tuner-card glass-panel">
+    <div class="tuner-header">
+      <button class="btn-back" (click)='backToMenu()'>
+        <fa-icon [icon]="faArrowLeft"></fa-icon>
+      </button>
+      <h1>Afinador Pro <fa-icon [icon]="faMusic"></fa-icon></h1>
+    </div>
+
+    <div class="tuner-main">
+      @if (audioService.tuningStatus(); as status) {
+        <div class="tuner-display" [class.perfect]="status.instruction === 'Perfecto'">
+          
+          <div class="needle-container">
+             <div class="scale-marks">
+                <span class="mark low">-50</span>
+                <span class="mark zero">0</span>
+                <span class="mark high">+50</span>
+             </div>
+             <div class="gauge">
+                <div class="needle" [style.transform]="'rotate(' + (status.cents * 1.2) + 'deg)'"></div>
+                <div class="gauge-center"></div>
+             </div>
+          </div>
+
+          <div class="note-info">
+             <div class="note-name">{{ status.note }}</div>
+             <div class="frequency">{{ status.freq.toFixed(1) }} Hz</div>
+          </div>
+
+          <div class="instruction" [class.perfect]="status.instruction === 'Perfecto'">
+             {{ status.instruction }}
+          </div>
+        </div>
+      } @else {
+        <div class="tuner-display empty">
+          <div class="pulse-loader"></div>
+          <p>Escuchando ukelele...</p>
+          <span class="hint">Toca una cuerda (G, C, E, A)</span>
+        </div>
+      }
+    </div>
+
+    <div class="tuner-footer">
+       <p>Tolerancia: ±5 Cents para perfección</p>
+    </div>
+  </div>
+</div>

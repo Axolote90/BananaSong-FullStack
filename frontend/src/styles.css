@@ -1,0 +1,21 @@
+/* src/styles.css */
+
+/* Resetear los márgenes por defecto del navegador */
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+  
+  /* Esto evita que aparezca una barra de scroll horizontal por accidente */
+  overflow-x: hidden; 
+  
+  /* Un fondo oscuro por defecto para que no haya flashazos blancos al cargar */
+  background-color: #111; 
+}
+
+/* Aplicar el modelo de caja correcto a todos los elementos */
+*, *::before, *::after {
+  box-sizing: inherit;
+}

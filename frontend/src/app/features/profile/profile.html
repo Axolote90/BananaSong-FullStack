@@ -1,0 +1,108 @@
+<div class="profile-container">
+  <div class="metaballs-bg">
+    <div class="blob blob1"></div>
+    <div class="blob blob2"></div>
+  </div>
+
+  <div class="profile-layout glass-panel">
+    
+    <div class="header">
+      <button class="btn-icon" (click)="backToMenu()">
+        <fa-icon [icon]="faArrowLeft"></fa-icon>
+      </button>
+      <h2>Mi Perfil</h2>
+      <button class="btn-icon logout" (click)="logout()" title="Cerrar Sesión">
+        <fa-icon [icon]="faSignOutAlt"></fa-icon>
+      </button>
+    </div>
+
+    <div class="content-grid">
+      
+      <!-- Lado Izquierdo: Datos del Usuario -->
+      <div class="user-section">
+        <div class="avatar-large">
+          <img [src]="croppedImage || getSafeProfileUrl(user()?.profile)" alt="Avatar">
+          <label class="btn-upload-photo" for="profile-upload" title="Cambiar Foto">
+            <fa-icon [icon]="faCamera"></fa-icon>
+            <input type="file" id="profile-upload" (change)="fileChangeEvent($event)" hidden accept="image/*">
+          </label>
+          <div class="xp-tag">{{ user()?.xp }} XP</div>
+        </div>
+
+        <!-- Visor del Recortador (Cropper) -->
+        @if (showCropper()) {
+          <div class="cropper-overlay">
+            <div class="cropper-card glass-panel">
+              <h3>Recortar Imagen</h3>
+              <image-cropper
+                [imageChangedEvent]="imageChangedEvent"
+                [maintainAspectRatio]="true"
+                [aspectRatio]="1 / 1"
+                [resizeToWidth]="256"
+                [imageQuality]="85"
+                format="png"
+                (imageCropped)="imageCropped($event)"
+              ></image-cropper>
+              <div class="form-actions mt-3">
+                <button class="btn-save" (click)="confirmarRecorte()">Confirmar y Subir</button>
+                <button class="btn-cancel" (click)="showCropper.set(false); imageChangedEvent=''">Cancelar</button>
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (!editMode()) {
+          <div class="user-details">
+            <h1>{{ user()?.username }}</h1>
+            <p class="bio">{{ user()?.bio || 'Sin biografía aún...' }}</p>
+            <button class="btn-edit" (click)="toggleEdit()">
+              <fa-icon [icon]="faUserEdit"></fa-icon> Editar Perfil
+            </button>
+          </div>
+        } @else {
+          <div class="edit-form">
+            <div class="form-group">
+              <label>Nombre de Usuario</label>
+              <input type="text" [(ngModel)]="editData.username" placeholder="Nombre...">
+            </div>
+            <div class="form-group">
+              <label>Biografía</label>
+              <textarea [(ngModel)]="editData.bio" rows="3" placeholder="Cuéntanos algo sobre ti..."></textarea>
+            </div>
+            <div class="form-actions">
+              <button class="btn-save" (click)="saveProfile()">Guardar</button>
+              <button class="btn-cancel" (click)="toggleEdit()">Cancelar</button>
+            </div>
+          </div>
+        }
+
+        <div class="stats-row">
+          <div class="stat-box">
+            <span class="value">{{ user()?.streak || 0 }}</span>
+            <span class="label">Racha</span>
+          </div>
+          <div class="stat-box">
+            <span class="value">{{ user()?.hearts || 0 }}</span>
+            <span class="label">Vidas</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lado Derecho: Leaderboard -->
+      <div class="leaderboard-section">
+        <h3><fa-icon [icon]="faTrophy" class="text-gold"></fa-icon> Top Jugadores</h3>
+        <div class="leaderboard-list">
+          @for (player of leaderboard(); track player.id; let i = $index) {
+            <div class="leaderboard-item" [class.current-user]="player.id === user()?.id">
+              <span class="rank">#{{ i + 1 }}</span>
+              <img [src]="getSafeProfileUrl(player.profile)" alt="Avatar" class="mini-avatar">
+              <span class="name">{{ player.username }}</span>
+              <span class="xp">{{ player.xp }} XP</span>
+            </div>
+          }
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
