@@ -2,14 +2,20 @@ import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
 import { AuthResponse } from '../models/user';
+import { API_CONFIG } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/api/auth';
-  private usersUrl = 'http://localhost:3000/api/users';
+  
+  /* 
+    MODO NGROK: La URL se gestiona automáticamente desde api.config.ts
+    Para volver a local, edita src/app/core/config/api.config.ts
+  */
+  private apiUrl = API_CONFIG.auth;
+  private usersUrl = API_CONFIG.users;
 
   // 1. Creamos una señal para el usuario. 
   // Intentamos leer del localStorage para que no se borre al refrescar.

@@ -2,6 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Level } from '../models/level';
+import { API_CONFIG } from '../config/api.config';
 
 @Injectable({
   providedIn: 'root'
@@ -10,8 +11,8 @@ export class LevelService {
   // Inyección del cliente HTTP
   private http = inject(HttpClient);
   
-  // La URL de tu API en Node.js
-  private apiUrl = 'http://localhost:3000/api/levels';
+  // La URL de tu API gestionada centralmente
+  private apiUrl = API_CONFIG.levels;
 
   // Función para pedir todas las canciones
   getLevels(): Observable<Level[]> {

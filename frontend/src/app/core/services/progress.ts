@@ -1,6 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { API_CONFIG } from '../config/api.config';
 
 export interface ProgressData {
   levelId: number;
@@ -15,7 +16,7 @@ export interface ProgressData {
 })
 export class ProgressService {
   private http = inject(HttpClient);
-  private apiUrl = 'http://localhost:3000/api/progress';
+  private apiUrl = API_CONFIG.progress;
 
   saveProgress(data: ProgressData): Observable<any> {
     return this.http.post<any>(this.apiUrl, data);
