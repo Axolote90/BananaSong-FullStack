@@ -32,7 +32,7 @@
       <div class="tutorial-bubble">
         <p>{{ tutorialDialog() }}</p>
         
-        @if (tutorialStep() < 9) {
+        @if (tutorialStep() < maxTutorialStep) {
           <button class="btn-tutorial" (click)="nextTutorialStep()">Entendido</button>
         } @else {
           <div class="hint-pulse">¡Te escuchamos! Toca ahora...</div>

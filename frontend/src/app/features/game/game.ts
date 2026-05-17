@@ -257,6 +257,10 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     this.runTutorialStep(1);
   }
 
+  get maxTutorialStep(): number {
+    return this.stringCount() === 6 ? 12 : 9;
+  }
+
   runTutorialStep(step: number) {
     this.tutorialStep.set(step);
     this.isTutorialPaused = true;
@@ -265,69 +269,108 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
     const isGuitar = this.instrument().startsWith('guitar');
 
-    switch (step) {
-      case 1:
-        this.tutorialDialog.set(isGuitar ? "¡Bienvenido a Banana Song! Esta es tu guitarra de 6 cuerdas." : "¡Bienvenido a Banana Song! Este es tu ukelele.");
-        break;
-      case 2:
-        if (isGuitar) {
-          this.tutorialDialog.set("Tiene 6 cuerdas. Las tres más bajas (graves) son MI (E), LA (A) y RE (D)...");
+    if (isGuitar) {
+      switch (step) {
+        case 1:
+          this.tutorialDialog.set("¡Bienvenido a Banana Song! Esta es tu guitarra de 6 cuerdas.");
+          break;
+        case 2:
+          this.tutorialDialog.set("Tiene 6 cuerdas. Empecemos de la más gruesa a la más delgada. La 6ª cuerda (hasta abajo) es MI (E).");
           this.highlightArea.set(6);
-        } else {
-          this.tutorialDialog.set("Tiene 4 cuerdas. La de hasta abajo (más cercana a ti) es SOL (G)...");
+          break;
+        case 3:
+          this.tutorialDialog.set("La 5ª cuerda es LA (A).");
+          this.highlightArea.set(5);
+          break;
+        case 4:
+          this.tutorialDialog.set("La 4ª cuerda es RE (D).");
           this.highlightArea.set(4);
-        }
-        break;
-      case 3:
-        if (isGuitar) {
-          this.tutorialDialog.set("...luego siguen las cuerdas intermedias: SOL (G) y SI (B)...");
+          break;
+        case 5:
+          this.tutorialDialog.set("La 3ª cuerda es SOL (G).");
           this.highlightArea.set(3);
-        } else {
-          this.tutorialDialog.set("...arriba de esa está DO (C)...");
-          this.highlightArea.set(3);
-        }
-        break;
-      case 4:
-        if (isGuitar) {
-          this.tutorialDialog.set("...y la de hasta arriba (más aguda) es la 1ª cuerda: MI (E).");
-          this.highlightArea.set(1);
-        } else {
-          this.tutorialDialog.set("...luego sigue MI (E)...");
+          break;
+        case 6:
+          this.tutorialDialog.set("La 2ª cuerda es SI (B).");
           this.highlightArea.set(2);
-        }
-        break;
-      case 5:
-        if (isGuitar) {
+          break;
+        case 7:
+          this.tutorialDialog.set("Y la 1ª cuerda (hasta arriba, la más delgada) es MI (E).");
+          this.highlightArea.set(1);
+          break;
+        case 8:
           this.tutorialDialog.set("Cada cuerda tiene un color y frecuencia distinta para que las identifiques de inmediato.");
           this.highlightArea.set('strings');
-        } else {
+          break;
+        case 9:
+          this.tutorialDialog.set("Estas son las notas. El número indica en qué traste debes poner tu dedo.");
+          this.highlightArea.set('note');
+          // Dejar que corra un poco de tiempo para mostrar las notas y luego pausar
+          this.isTutorialPaused = false;
+          setTimeout(() => { this.isTutorialPaused = true; }, 3500); 
+          break;
+        case 10:
+          this.tutorialDialog.set("Cuando el círculo de tiempo llegue a la nota, debes tocarla. Mira cómo se hace:");
+          this.highlightArea.set('timer');
+          break;
+        case 11:
+          this.tutorialDialog.set(null); // Ocultar diálogo para la demostración
+          this.isTutorialPaused = false;
+          this.isAutoPlaying = true;
+          this.speedMultiplier = 2.5; // Acelerar demostración
+          break;
+        case 12:
+          this.speedMultiplier = 1;
+          this.tutorialDialog.set("¡Ahora es tu turno! Toca las 6 cuerdas al aire cuando lleguen al círculo.");
+          this.isTutorialPaused = false;
+          this.isAutoPlaying = false;
+          break;
+      }
+    } else {
+      // Ukelele (9 pasos originales)
+      switch (step) {
+        case 1:
+          this.tutorialDialog.set("¡Bienvenido a Banana Song! Este es tu ukelele.");
+          break;
+        case 2:
+          this.tutorialDialog.set("Tiene 4 cuerdas. La de hasta abajo (más cercana a ti) es SOL (G)...");
+          this.highlightArea.set(4);
+          break;
+        case 3:
+          this.tutorialDialog.set("...arriba de esa está DO (C)...");
+          this.highlightArea.set(3);
+          break;
+        case 4:
+          this.tutorialDialog.set("...luego sigue MI (E)...");
+          this.highlightArea.set(2);
+          break;
+        case 5:
           this.tutorialDialog.set("...y la de hasta arriba es LA (A).");
           this.highlightArea.set(1);
-        }
-        break;
-      case 6:
-        this.tutorialDialog.set("Estas son las notas. El número indica en qué traste debes poner tu dedo.");
-        this.highlightArea.set('note');
-        // Let time run a bit to show notes then pause
-        this.isTutorialPaused = false;
-        setTimeout(() => { this.isTutorialPaused = true; }, 3500); 
-        break;
-      case 7:
-        this.tutorialDialog.set("Cuando el círculo de tiempo llegue a la nota, debes tocarla. Mira cómo se hace:");
-        this.highlightArea.set('timer');
-        break;
-      case 8:
-        this.tutorialDialog.set(null); // Hide dialog
-        this.isTutorialPaused = false;
-        this.isAutoPlaying = true;
-        this.speedMultiplier = 2.5; // Acelerar la demostración para que sea dinámica
-        break;
-      case 9:
-        this.speedMultiplier = 1; // Volver a la velocidad normal para el jugador
-        this.tutorialDialog.set(isGuitar ? "¡Ahora es tu turno! Toca las 6 cuerdas al aire cuando lleguen al círculo." : "¡Ahora es tu turno! Toca las 4 cuerdas al aire cuando lleguen.");
-        this.isTutorialPaused = false;
-        this.isAutoPlaying = false;
-        break;
+          break;
+        case 6:
+          this.tutorialDialog.set("Estas son las notas. El número indica en qué traste debes poner tu dedo.");
+          this.highlightArea.set('note');
+          this.isTutorialPaused = false;
+          setTimeout(() => { this.isTutorialPaused = true; }, 3500); 
+          break;
+        case 7:
+          this.tutorialDialog.set("Cuando el círculo de tiempo llegue a la nota, debes tocarla. Mira cómo se hace:");
+          this.highlightArea.set('timer');
+          break;
+        case 8:
+          this.tutorialDialog.set(null);
+          this.isTutorialPaused = false;
+          this.isAutoPlaying = true;
+          this.speedMultiplier = 2.5;
+          break;
+        case 9:
+          this.speedMultiplier = 1;
+          this.tutorialDialog.set("¡Ahora es tu turno! Toca las 4 cuerdas al aire cuando lleguen.");
+          this.isTutorialPaused = false;
+          this.isAutoPlaying = false;
+          break;
+      }
     }
   }
 
@@ -522,7 +565,8 @@ togglePause() {
           this.marcarNota(targetNote, 'perfect', 20);
           this.audioService.playNoteSound(targetNote.name);
           
-          if (this.isTutorialMode() && this.tutorialStep() === 8) {
+          const demoStep = this.stringCount() === 6 ? 11 : 8;
+          if (this.isTutorialMode() && this.tutorialStep() === demoStep) {
             // Cuando la demostración termine de tocar todas las notas
             const requiredPerfect = this.stringCount() === 6 ? 6 : 4;
             if (this.stats().perfect >= requiredPerfect && this.isAutoPlaying) {
