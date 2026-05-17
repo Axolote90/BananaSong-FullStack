@@ -35,6 +35,7 @@ interface Particle {
 })
 export class GameComponent implements AfterViewInit, OnDestroy {
   @Input() forceMode: 'game' | 'tutorial' | null = null;
+  @Input() forcedInstrument: string | null = null;
   // --- INYECCIONES ---
   private ngZone = inject(NgZone);
   public router = inject(Router);
@@ -198,8 +199,9 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   setupTutorial() {
     this.isTutorialMode.set(true);
     
-    // Obtener el instrumento activo seleccionado por el usuario desde query params o AuthService
-    const queryInstrument = this.route.snapshot.queryParamMap.get('instrument');
+    // Obtener el instrumento activo seleccionado por el usuario desde input, query params o AuthService (con fallback universal)
+    const urlParams = new URLSearchParams(window.location.search);
+    const queryInstrument = this.forcedInstrument || this.route.snapshot.queryParamMap.get('instrument') || urlParams.get('instrument');
     const userInstrument = queryInstrument || this.authService.currentUser()?.targetInstrument || 'ukulele';
     const isGuitar = userInstrument.startsWith('guitar');
 
@@ -919,7 +921,8 @@ togglePause() {
       this.ctx.beginPath(); this.ctx.arc(note.x, stringY, 14, 0, Math.PI, false); this.ctx.fillStyle = color2; this.ctx.fill();
       this.ctx.restore();
       
-      const fretNumber = this.noteDefinitions[note.name].fret;
+      const def = this.noteDefinitions[note.name];
+      const fretNumber = def ? def.fret : 0;
       this.ctx.fillStyle = "white"; this.ctx.font = "bold 14px Arial";
       this.ctx.fillText(fretNumber.toString(), note.x - 4, stringY + 5);
     }
