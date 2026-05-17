@@ -57,7 +57,7 @@ io.on('connection', (socket) => {
     // El cliente se identifica al conectarse
     socket.on('identify', (userId) => {
         if (userId) {
-            onlineUsers.set(Number(userId), socket.id);
+            onlineUsers.set(String(userId), socket.id);
             console.log(`👤 Usuario online registrado: UserId ${userId} -> Socket ${socket.id}`);
         }
     });

@@ -107,8 +107,8 @@ exports.saveProgress = async (req, res) => {
                 });
 
                 // Alerta específica al rival superado si está online
-                if (onlineUsers && onlineUsers.has(Number(formerTopUserId))) {
-                    const targetSocketId = onlineUsers.get(Number(formerTopUserId));
+                if (onlineUsers && onlineUsers.has(String(formerTopUserId))) {
+                    const targetSocketId = onlineUsers.get(String(formerTopUserId));
                     io.to(targetSocketId).emit('record_beaten_personal', {
                         levelTitle: level.title,
                         newTopUser: user.username,
