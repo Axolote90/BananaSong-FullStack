@@ -83,7 +83,7 @@ app.use('/api/users', userRoutes);
 app.use(express.static(path.join(__dirname, '../../frontend/dist/frontend/browser')));
 
 // Cualquier ruta que no sea de la API redirige al index.html de Angular (SPA Routing)
-app.get('/*', (req, res) => {
+app.get('/:splat*', (req, res) => {
     res.sendFile(path.join(__dirname, '../../frontend/dist/frontend/browser/index.html'));
 });
 
