@@ -8,9 +8,7 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 // --- 1. IMPORTACIÓN DE CONEXIÓN Y MODELOS ---
 const sequelize = require('./config/db');
-const User = require('./models/User');
-const Level = require('./models/Level');
-const Progress = require('./models/Progress');
+const { User, Level, Progress, Difficulty, Instrument } = require('./models');
 
 const levelRoutes = require('./routes/levelRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -76,17 +74,7 @@ io.on('connection', (socket) => {
 });
 
 // --- 4. CONFIGURACIÓN DE RELACIONES (SQL Asociaciones) ---
-// Relación 1:N (Un usuario tiene muchos registros de progreso)
-User.hasMany(Progress, { foreignKey: 'userId', onDelete: 'CASCADE' });
-Progress.belongsTo(User, { foreignKey: 'userId' });
-
-// Relación 1:N (Un nivel tiene muchos registros de progreso de distintos usuarios)
-Level.hasMany(Progress, { foreignKey: 'levelId', onDelete: 'CASCADE' });
-Progress.belongsTo(Level, { foreignKey: 'levelId' });
-
-// Relación N:M (Muchos a Muchos entre Usuario y Nivel a través de Progress)
-User.belongsToMany(Level, { through: Progress, foreignKey: 'userId' });
-Level.belongsToMany(User, { through: Progress, foreignKey: 'levelId' });
+// Las relaciones y llaves foráneas se inicializan y mapean automáticamente al requerir el archivo centralizado `./models`
 
 // --- 5. RUTAS DE LA API ---
 app.get('/api/status', (req, res) => {
@@ -117,9 +105,23 @@ app.use(errorHandler);
 // --- 6. SINCRONIZACIÓN Y ARRANQUE ---
 // Sincronizamos modelos con la DB antes de abrir el puerto
 sequelize.sync({ alter: true }) // alter: true aplica los cambios a la db sin borrar datos
-    .then(() => {
+    .then(async () => {
         console.log('--------------------------------------------');
         console.log('✅ Tablas sincronizadas con MySQL con éxito.');
+        
+        // Sembrar Dificultades Catálogo
+        const Difficulty = require('./models/Difficulty');
+        await Difficulty.findOrCreate({ where: { level: 'easy' } });
+        await Difficulty.findOrCreate({ where: { level: 'medium' } });
+        await Difficulty.findOrCreate({ where: { level: 'hard' } });
+
+        // Sembrar Instrumentos Catálogo
+        const Instrument = require('./models/Instrument');
+        await Instrument.findOrCreate({ where: { name: 'ukulele' } });
+        await Instrument.findOrCreate({ where: { name: 'guitar_acoustic' } });
+        await Instrument.findOrCreate({ where: { name: 'guitar_electric' } });
+        await Instrument.findOrCreate({ where: { name: 'violin' } });
+        console.log('🌱 Semillas de dificultades e instrumentos cargadas y actualizadas.');
         
         const PORT = process.env.PORT || 3000;
         server.listen(PORT, () => {

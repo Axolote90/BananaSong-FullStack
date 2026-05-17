@@ -28,10 +28,18 @@ const Progress = sequelize.define('Progress', {
         type: DataTypes.FLOAT,
         defaultValue: 0.0
     },
-    instrument: {
-        type: DataTypes.STRING,
-        allowNull: false,
-        defaultValue: 'ukulele'
+    instrumentId: {
+        type: DataTypes.INTEGER,
+        allowNull: true
+    }
+}, {
+    tableName: 'progress'
+});
+
+// Getter en el prototipo para retrocompatibilidad transparente
+Object.defineProperty(Progress.prototype, 'instrument', {
+    get() {
+        return this.Instrument ? this.Instrument.name : 'ukulele';
     }
 });
 

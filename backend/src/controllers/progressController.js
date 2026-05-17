@@ -1,4 +1,4 @@
-const { Progress, User, Level, UserInstrument } = require('../models');
+const { Progress, User, Level, UserInstrument, Instrument } = require('../models');
 const { Op } = require('sequelize');
 
 exports.saveProgress = async (req, res) => {
@@ -9,7 +9,15 @@ exports.saveProgress = async (req, res) => {
         const level = await Level.findByPk(levelId);
         if (!level) return res.status(404).json({ message: "Nivel no encontrado" });
 
-        const instrument = level.instrument || 'ukulele';
+        const instrumentName = level.instrument || 'ukulele';
+        
+        // Buscar el instrumento catálogo correspondiente
+        const instRecord = await Instrument.findOne({ where: { name: instrumentName } });
+        if (!instRecord) {
+            return res.status(404).json({ message: "Instrumento catálogo no encontrado" });
+        }
+        const instrumentId = instRecord.id;
+
         const user = await User.findByPk(userId);
         if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
 
@@ -23,18 +31,18 @@ exports.saveProgress = async (req, res) => {
                 progress.maxCombo = Math.max(progress.maxCombo, maxCombo);
                 progress.accuracy = Math.max(progress.accuracy, accuracy);
                 progress.completed = true;
-                progress.instrument = instrument;
+                progress.instrumentId = instrumentId;
                 await progress.save();
             }
         } else {
             progress = await Progress.create({
-                userId, levelId, score, stars, completed: true, maxCombo, accuracy, instrument
+                userId, levelId, score, stars, completed: true, maxCombo, accuracy, instrumentId
             });
         }
 
         // ACTUALIZAR ESTADÍSTICAS INDEPENDIENTES (UserInstrument)
         const [stats, created] = await UserInstrument.findOrCreate({
-            where: { userId, instrument },
+            where: { userId, instrumentId },
             defaults: { xp: 0, level: 1, badges: [] }
         });
 
@@ -58,7 +66,7 @@ exports.saveProgress = async (req, res) => {
         stats.changed('badges', true);
         await stats.save();
 
-        // Actualizar Usuario
+        // Actualizar Usuario general
         user.xp += earnedXp; 
         const now = new Date();
         if (!user.lastLoginDate) {
@@ -75,7 +83,7 @@ exports.saveProgress = async (req, res) => {
         // DETECTAR USUARIOS SUPERADOS EN EL RANKING GENERAL DE ESTE INSTRUMENTO
         const surpassedUsers = await UserInstrument.findAll({
             where: {
-                instrument,
+                instrumentId,
                 userId: { [Op.ne]: userId }, // Excluir al jugador actual
                 xp: {
                     [Op.between]: [oldXp, newXp - 1] // Tenían más (o igual) XP que el oldXp del jugador, pero quedan por debajo de su newXp
@@ -88,7 +96,7 @@ exports.saveProgress = async (req, res) => {
         const io = req.app.get('io');
         const onlineUsers = req.app.get('onlineUsers');
 
-        console.log(`[DEBUG_WS] UserId actual: ${userId} (${user.username}). Instrumento: ${instrument}. XP anterior: ${oldXp} -> XP nueva: ${newXp}`);
+        console.log(`[DEBUG_WS] UserId actual: ${userId} (${user.username}). Instrumento: ${instrumentName}. XP anterior: ${oldXp} -> XP nueva: ${newXp}`);
         console.log(`[DEBUG_WS] Encontrado io: ${!!io}, Encontrado onlineUsers: ${!!onlineUsers}`);
         if (onlineUsers) {
             console.log(`[DEBUG_WS] Usuarios online en el mapa:`, Array.from(onlineUsers.entries()));
@@ -96,16 +104,16 @@ exports.saveProgress = async (req, res) => {
 
         if (io) {
             // 1. Notificar actualización de Leaderboard en vivo
-            io.emit('leaderboard_update', { instrument });
-            console.log(`[DEBUG_WS] Emitida actualización de leaderboard para: ${instrument}`);
+            io.emit('leaderboard_update', { instrument: instrumentName });
+            console.log(`[DEBUG_WS] Emitida actualización de leaderboard para: ${instrumentName}`);
 
             // 2. Notificar a cada uno de los rivales que fueron superados en el ranking
             if (surpassedUsers && surpassedUsers.length > 0) {
                 console.log(`[DEBUG_WS] ¡Superación en el ranking detectada! Superados: ${surpassedUsers.length}`);
                 
-                const instrLabel = instrument === 'ukulele' 
+                const instrLabel = instrumentName === 'ukulele' 
                     ? 'Ukelele' 
-                    : (instrument === 'guitar_acoustic' ? 'Guitarra Acústica' : (instrument === 'guitar_electric' ? 'Guitarra Eléctrica' : 'Violín'));
+                    : (instrumentName === 'guitar_acoustic' ? 'Guitarra Acústica' : (instrumentName === 'guitar_electric' ? 'Guitarra Eléctrica' : 'Violín'));
 
                 for (const surpassed of surpassedUsers) {
                     const rivalId = String(surpassed.userId);
@@ -140,7 +148,10 @@ exports.saveProgress = async (req, res) => {
             }
         }
 
-        const allStats = await UserInstrument.findAll({ where: { userId } });
+        const allStats = await UserInstrument.findAll({ 
+            where: { userId },
+            include: [Instrument]
+        });
         const statsMap = {};
         allStats.forEach(s => {
             statsMap[s.instrument] = { xp: s.xp, level: s.level, badges: s.badges };

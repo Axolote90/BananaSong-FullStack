@@ -1,7 +1,7 @@
 -- =========================================================================
--- DUMP DE BASE DE DATOS BANANA SONG COMPATIBLE CON POSTGRESQL
+-- DUMP DE BASE DE DATOS BANANA SONG COMPATIBLE CON POSTGRESQL (ESQUEMA NORMALIZADO)
 -- Generado automáticamente para subida e integración en IAs de Postgres
--- Fecha de generación: 2026-05-17T05:29:28.790Z
+-- Fecha de generación: 2026-05-17T05:51:22.040Z
 -- =========================================================================
 
 CREATE TABLE IF NOT EXISTS users (
@@ -17,24 +17,34 @@ CREATE TABLE IF NOT EXISTS users (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS difficulties (
+    id SERIAL PRIMARY KEY,
+    level VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS instruments (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL
+);
+
 CREATE TABLE IF NOT EXISTS levels (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     notes TEXT,
-    difficulty VARCHAR(50) DEFAULT 'easy',
     stars INTEGER DEFAULT 0,
     instrument VARCHAR(255) DEFAULT 'ukulele',
+    difficulty_id INTEGER REFERENCES difficulties(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
 CREATE TABLE IF NOT EXISTS user_instruments (
     id SERIAL PRIMARY KEY,
-    instrument VARCHAR(255) NOT NULL,
     xp INTEGER DEFAULT 0,
     level INTEGER DEFAULT 1,
     badges TEXT,
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+    instrument_id INTEGER REFERENCES instruments(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -46,9 +56,9 @@ CREATE TABLE IF NOT EXISTS progress (
     completed BOOLEAN DEFAULT FALSE,
     max_combo INTEGER DEFAULT 0,
     accuracy FLOAT DEFAULT 0.0,
-    instrument VARCHAR(255) DEFAULT 'ukulele',
     user_id UUID REFERENCES users(id) ON DELETE CASCADE,
     level_id INTEGER REFERENCES levels(id) ON DELETE CASCADE,
+    instrument_id INTEGER REFERENCES instruments(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
@@ -67,50 +77,41 @@ INSERT INTO users (id, username, bio, xp, streak, hearts, email, is_confirmed, c
 INSERT INTO users (id, username, bio, xp, streak, hearts, email, is_confirmed, created_at, updated_at) VALUES ('dcafe4eb-0b73-4807-855c-b4f90c2ebcd5', 'Test04', NULL, 183, 9, 5, 'test04@example.com', FALSE, '2026-05-17T04:18:06.000Z', '2026-05-17T04:48:44.000Z') ON CONFLICT (id) DO NOTHING;
 INSERT INTO users (id, username, bio, xp, streak, hearts, email, is_confirmed, created_at, updated_at) VALUES ('ffa72c54-3d85-4d40-bd0e-e805aae32d3f', 'pruebaDrako', NULL, 0, 0, 5, 'pedo@si.com', FALSE, '2026-05-17T03:44:52.000Z', '2026-05-17T03:45:48.000Z') ON CONFLICT (id) DO NOTHING;
 
+-- --- DATOS DE DIFICULTADES ---
+INSERT INTO difficulties (id, level) VALUES (1, 'easy') ON CONFLICT (id) DO NOTHING;
+INSERT INTO difficulties (id, level) VALUES (3, 'hard') ON CONFLICT (id) DO NOTHING;
+INSERT INTO difficulties (id, level) VALUES (2, 'medium') ON CONFLICT (id) DO NOTHING;
+
+-- --- DATOS DE INSTRUMENTOS ---
+INSERT INTO instruments (id, name) VALUES (2, 'guitar_acoustic') ON CONFLICT (id) DO NOTHING;
+INSERT INTO instruments (id, name) VALUES (3, 'guitar_electric') ON CONFLICT (id) DO NOTHING;
+INSERT INTO instruments (id, name) VALUES (1, 'ukulele') ON CONFLICT (id) DO NOTHING;
+INSERT INTO instruments (id, name) VALUES (4, 'violin') ON CONFLICT (id) DO NOTHING;
+
 -- --- DATOS DE NIVELES ---
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (1, 'Lección 1: Cuerdas al Aire', NULL, 'easy', 0, 'ukulele', '2026-03-19T04:30:13.000Z', '2026-03-19T04:30:13.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (2, 'La Cucaracha', NULL, 'easy', 0, 'ukulele', '2026-05-15T17:01:57.000Z', '2026-05-15T17:01:57.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (3, 'Estrellita Dónde Estás (Twinkle Twinkle)', NULL, 'easy', 0, 'ukulele', '2026-05-15T17:04:14.000Z', '2026-05-15T17:04:14.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (5, 'María tenía un corderito', NULL, 'easy', 0, 'ukulele', '2026-05-15T17:04:14.000Z', '2026-05-15T17:04:14.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (6, 'Martinillo (Frère Jacques)', NULL, 'easy', 0, 'ukulele', '2026-05-15T17:04:14.000Z', '2026-05-15T17:04:14.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (7, 'Cumpleaños Feliz', NULL, 'medium', 0, 'ukulele', '2026-05-15T17:04:14.000Z', '2026-05-15T17:04:14.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (13, 'Himno a la Alegría (EXTENDIDA)', NULL, 'medium', 0, 'ukulele', '2026-05-15T19:44:58.000Z', '2026-05-15T19:44:58.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (14, 'Canon en Re (SESIÓN LARGA)', NULL, 'medium', 0, 'ukulele', '2026-05-15T19:44:58.000Z', '2026-05-15T19:44:58.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (15, 'Para Elisa (CONCIERTO)', NULL, 'hard', 0, 'ukulele', '2026-05-15T19:44:58.000Z', '2026-05-15T19:44:58.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (16, 'Guitarra Acústica 101: Cuerdas al aire', NULL, 'easy', 0, 'guitar_acoustic', '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (17, 'Twinkle Twinkle (Guitarra Acústica)', NULL, 'medium', 0, 'guitar_acoustic', '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (18, 'Guitarra Eléctrica 101: Riff al aire', NULL, 'easy', 0, 'guitar_electric', '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (19, 'Riff de Rock Clásico (Smoke on the Water)', NULL, 'hard', 0, 'guitar_electric', '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (20, 'Violín 101: Cuerdas al aire', NULL, 'easy', 0, 'violin', '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO levels (id, title, notes, difficulty, stars, instrument, created_at, updated_at) VALUES (21, 'Himno a la Alegría (Violín)', NULL, 'medium', 0, 'violin', '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (1, 'Lección 1: Cuerdas al Aire', NULL, 0, 'ukulele', NULL, '2026-03-19T04:30:13.000Z', '2026-03-19T04:30:13.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (2, 'La Cucaracha', NULL, 0, 'ukulele', NULL, '2026-05-15T17:01:57.000Z', '2026-05-15T17:01:57.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (3, 'Estrellita Dónde Estás (Twinkle Twinkle)', NULL, 0, 'ukulele', NULL, '2026-05-15T17:04:14.000Z', '2026-05-15T17:04:14.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (5, 'María tenía un corderito', NULL, 0, 'ukulele', NULL, '2026-05-15T17:04:14.000Z', '2026-05-15T17:04:14.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (6, 'Martinillo (Frère Jacques)', NULL, 0, 'ukulele', NULL, '2026-05-15T17:04:14.000Z', '2026-05-15T17:04:14.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (7, 'Cumpleaños Feliz', NULL, 0, 'ukulele', NULL, '2026-05-15T17:04:14.000Z', '2026-05-15T17:04:14.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (13, 'Himno a la Alegría (EXTENDIDA)', NULL, 0, 'ukulele', NULL, '2026-05-15T19:44:58.000Z', '2026-05-15T19:44:58.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (14, 'Canon en Re (SESIÓN LARGA)', NULL, 0, 'ukulele', NULL, '2026-05-15T19:44:58.000Z', '2026-05-15T19:44:58.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (15, 'Para Elisa (CONCIERTO)', NULL, 0, 'ukulele', NULL, '2026-05-15T19:44:58.000Z', '2026-05-15T19:44:58.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (16, 'Guitarra Acústica 101: Cuerdas al aire', NULL, 0, 'guitar_acoustic', NULL, '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (17, 'Twinkle Twinkle (Guitarra Acústica)', NULL, 0, 'guitar_acoustic', NULL, '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (18, 'Guitarra Eléctrica 101: Riff al aire', NULL, 0, 'guitar_electric', NULL, '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (19, 'Riff de Rock Clásico (Smoke on the Water)', NULL, 0, 'guitar_electric', NULL, '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (20, 'Violín 101: Cuerdas al aire', NULL, 0, 'violin', NULL, '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
+INSERT INTO levels (id, title, notes, stars, instrument, difficulty_id, created_at, updated_at) VALUES (21, 'Himno a la Alegría (Violín)', NULL, 0, 'violin', NULL, '2026-05-17T03:14:58.000Z', '2026-05-17T03:14:58.000Z') ON CONFLICT (id) DO NOTHING;
 
 -- --- DATOS DE ESTADÍSTICAS POR INSTRUMENTO ---
-INSERT INTO user_instruments (id, instrument, xp, level, badges, user_id, created_at, updated_at) VALUES (1, 'ukulele', 44, 1, '[]', '4bb7045a-972d-4997-be8b-5ca21eb3c896', '2026-05-16T23:09:04.000Z', '2026-05-16T23:09:04.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO user_instruments (id, instrument, xp, level, badges, user_id, created_at, updated_at) VALUES (2, 'ukulele', 182, 1, '[]', '9110880c-3494-4c58-9847-c5bef5d35721', '2026-05-16T23:09:04.000Z', '2026-05-17T04:49:49.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO user_instruments (id, instrument, xp, level, badges, user_id, created_at, updated_at) VALUES (3, 'ukulele', 180, 1, '[]', 'a9451a35-9d3e-43d7-9b15-94981c12657b', '2026-05-16T23:09:04.000Z', '2026-05-16T23:09:04.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO user_instruments (id, instrument, xp, level, badges, user_id, created_at, updated_at) VALUES (4, 'ukulele', 10500, 11, '["novice","apprentice","specialist","master"]', 'bfc2b276-f839-4ad2-aaf9-fed982f86f42', '2026-05-16T23:09:04.000Z', '2026-05-16T23:48:46.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO user_instruments (id, instrument, xp, level, badges, user_id, created_at, updated_at) VALUES (5, 'guitar_acoustic', 0, 1, '[]', '455e0cd3-26fe-4091-a381-03bc9e8107ce', '2026-05-17T03:48:00.000Z', '2026-05-17T03:48:00.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO user_instruments (id, instrument, xp, level, badges, user_id, created_at, updated_at) VALUES (6, 'guitar_acoustic', 0, 1, '[]', 'bfc2b276-f839-4ad2-aaf9-fed982f86f42', '2026-05-17T04:11:13.000Z', '2026-05-17T04:11:13.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO user_instruments (id, instrument, xp, level, badges, user_id, created_at, updated_at) VALUES (7, 'ukulele', 183, 1, '[]', 'dcafe4eb-0b73-4807-855c-b4f90c2ebcd5', '2026-05-17T04:20:46.000Z', '2026-05-17T04:48:44.000Z') ON CONFLICT (id) DO NOTHING;
 
 -- --- DATOS DE PROGRESO DE NIVELES ---
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (1, 80, 3, TRUE, 4, 100, 'ukulele', 'a9451a35-9d3e-43d7-9b15-94981c12657b', 1, '2026-05-15T16:13:10.000Z', '2026-05-16T19:11:53.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (2, 222, 3, TRUE, 11, 90, 'ukulele', 'a9451a35-9d3e-43d7-9b15-94981c12657b', 5, '2026-05-15T17:24:29.000Z', '2026-05-16T20:41:02.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (3, 250, 2, TRUE, 15, 85, 'ukulele', 'a9451a35-9d3e-43d7-9b15-94981c12657b', 2, '2026-05-15T17:58:37.000Z', '2026-05-16T20:41:44.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (4, 80, 3, TRUE, 4, 100, 'ukulele', '4bb7045a-972d-4997-be8b-5ca21eb3c896', 1, '2026-05-16T05:35:01.000Z', '2026-05-16T05:35:01.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (5, 230, 2, TRUE, 15, 82, 'ukulele', '4bb7045a-972d-4997-be8b-5ca21eb3c896', 2, '2026-05-16T05:43:49.000Z', '2026-05-16T05:43:49.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (6, 80, 3, TRUE, 4, 100, 'ukulele', '9110880c-3494-4c58-9847-c5bef5d35721', 1, '2026-05-16T22:22:35.000Z', '2026-05-16T22:22:35.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (7, 280, 2, TRUE, 15, 88, 'ukulele', '9110880c-3494-4c58-9847-c5bef5d35721', 2, '2026-05-16T22:23:19.000Z', '2026-05-16T22:23:19.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (8, 70, 3, TRUE, 4, 94, 'ukulele', 'bfc2b276-f839-4ad2-aaf9-fed982f86f42', 1, '2026-05-16T22:49:04.000Z', '2026-05-16T22:49:04.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (9, 300, 3, TRUE, 17, 94, 'ukulele', 'bfc2b276-f839-4ad2-aaf9-fed982f86f42', 2, '2026-05-16T22:49:43.000Z', '2026-05-16T22:49:43.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (10, 200, 2, TRUE, 6, 80, 'ukulele', 'bfc2b276-f839-4ad2-aaf9-fed982f86f42', 3, '2026-05-16T22:50:46.000Z', '2026-05-16T23:12:29.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (11, 135, 2, TRUE, 6, 73, 'ukulele', 'bfc2b276-f839-4ad2-aaf9-fed982f86f42', 7, '2026-05-16T23:11:15.000Z', '2026-05-16T23:11:15.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (12, 170, 2, TRUE, 3, 71, 'ukulele', 'dcafe4eb-0b73-4807-855c-b4f90c2ebcd5', 3, '2026-05-17T04:20:46.000Z', '2026-05-17T04:40:51.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (13, 80, 3, TRUE, 4, 100, 'ukulele', 'dcafe4eb-0b73-4807-855c-b4f90c2ebcd5', 1, '2026-05-17T04:22:00.000Z', '2026-05-17T04:22:00.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (14, 285, 3, TRUE, 16, 91, 'ukulele', 'dcafe4eb-0b73-4807-855c-b4f90c2ebcd5', 2, '2026-05-17T04:22:33.000Z', '2026-05-17T04:46:39.000Z') ON CONFLICT (id) DO NOTHING;
-INSERT INTO progress (id, score, stars, completed, max_combo, accuracy, instrument, user_id, level_id, created_at, updated_at) VALUES (15, 185, 2, TRUE, 7, 80, 'ukulele', '9110880c-3494-4c58-9847-c5bef5d35721', 3, '2026-05-17T04:40:05.000Z', '2026-05-17T04:49:49.000Z') ON CONFLICT (id) DO NOTHING;
 
 -- --- RESETEAR SECUENCIAS PARA SERIALES ---
+SELECT setval('difficulties_id_seq', COALESCE((SELECT MAX(id)+1 FROM difficulties), 1), false);
+SELECT setval('instruments_id_seq', COALESCE((SELECT MAX(id)+1 FROM instruments), 1), false);
 SELECT setval('levels_id_seq', COALESCE((SELECT MAX(id)+1 FROM levels), 1), false);
 SELECT setval('user_instruments_id_seq', COALESCE((SELECT MAX(id)+1 FROM user_instruments), 1), false);
 SELECT setval('progress_id_seq', COALESCE((SELECT MAX(id)+1 FROM progress), 1), false);

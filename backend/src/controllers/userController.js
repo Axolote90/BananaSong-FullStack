@@ -1,5 +1,5 @@
-const { User, UserInstrument } = require('../models');
-const { Op, literal } = require('sequelize');
+const { User, UserInstrument, Instrument } = require('../models');
+const { Op } = require('sequelize');
 
 exports.updateProfile = async (req, res) => {
     try {
@@ -18,7 +18,10 @@ exports.updateProfile = async (req, res) => {
         await user.save();
 
         // Obtener stats por instrumento para el perfil
-        const allStats = await UserInstrument.findAll({ where: { userId } });
+        const allStats = await UserInstrument.findAll({ 
+            where: { userId },
+            include: [Instrument]
+        });
         const statsMap = {};
         allStats.forEach(s => {
             statsMap[s.instrument] = { xp: s.xp, level: s.level, badges: s.badges };
@@ -47,11 +50,16 @@ exports.updateProfile = async (req, res) => {
 exports.getLeaderboard = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 10;
-        const instrument = req.query.instrument || 'ukulele';
+        const instrumentName = req.query.instrument || 'ukulele';
+
+        const instRecord = await Instrument.findOne({ where: { name: instrumentName } });
+        if (!instRecord) {
+            return res.json([]);
+        }
 
         // Buscar en la tabla UserInstrument y unir con User
         const topInstruments = await UserInstrument.findAll({
-            where: { instrument },
+            where: { instrumentId: instRecord.id },
             include: [{
                 model: User,
                 attributes: ['username', 'imgProfile', 'bio']
@@ -90,12 +98,20 @@ exports.enrollInstrument = async (req, res) => {
             return res.status(400).json({ message: "Instrumento no válido" });
         }
 
+        const instRecord = await Instrument.findOne({ where: { name: instrument } });
+        if (!instRecord) {
+            return res.status(400).json({ message: "Instrumento catálogo no encontrado" });
+        }
+
         const [userInstrument, created] = await UserInstrument.findOrCreate({
-            where: { userId, instrument },
+            where: { userId, instrumentId: instRecord.id },
             defaults: { xp: 0, level: 1, badges: [] }
         });
 
-        const allStats = await UserInstrument.findAll({ where: { userId } });
+        const allStats = await UserInstrument.findAll({ 
+            where: { userId },
+            include: [Instrument]
+        });
         const statsMap = {};
         allStats.forEach(s => {
             statsMap[s.instrument] = { xp: s.xp, level: s.level, badges: s.badges };

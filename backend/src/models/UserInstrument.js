@@ -11,9 +11,9 @@ const UserInstrument = sequelize.define('UserInstrument', {
         type: DataTypes.UUID,
         allowNull: false
     },
-    instrument: {
-        type: DataTypes.STRING,
-        allowNull: false
+    instrumentId: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     },
     xp: {
         type: DataTypes.INTEGER,
@@ -29,13 +29,21 @@ const UserInstrument = sequelize.define('UserInstrument', {
         defaultValue: []
     }
 }, {
+    tableName: 'user_instruments',
     // Índice único para evitar duplicados por usuario/instrumento
     indexes: [
         {
             unique: true,
-            fields: ['userId', 'instrument']
+            fields: ['userId', 'instrumentId']
         }
     ]
+});
+
+// Getter en el prototipo para retrocompatibilidad transparente
+Object.defineProperty(UserInstrument.prototype, 'instrument', {
+    get() {
+        return this.Instrument ? this.Instrument.name : null;
+    }
 });
 
 module.exports = UserInstrument;

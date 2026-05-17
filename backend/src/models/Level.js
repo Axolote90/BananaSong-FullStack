@@ -7,16 +7,16 @@ const Level = sequelize.define('Level', {
         type: DataTypes.STRING,
         allowNull: false
     },
-    difficulty: {
-        type: DataTypes.ENUM('easy', 'medium', 'hard'),
-        defaultValue: 'easy'
+    difficultyId: {
+        type: DataTypes.INTEGER,
+        allowNull: true
     },
     instrument: {
         type: DataTypes.STRING,
-        defaultValue: 'ukulele' // Valor por defecto para compatibilidad
+        defaultValue: 'ukulele' 
     },
     bpm: {
-        type: DataTypes.INTEGER, // Beats por minuto, para controlar la velocidad del scroll
+        type: DataTypes.INTEGER, 
         defaultValue: 80
     },
     // Aquí vive la "partitura" en formato JSON
@@ -24,14 +24,21 @@ const Level = sequelize.define('Level', {
         type: DataTypes.TEXT, 
         allowNull: false,
         get() {
-            // Al leer de la DB, lo convierte automáticamente de String a Objeto JS
             const rawValue = this.getDataValue('track_data');
             return rawValue ? JSON.parse(rawValue) : null;
         },
         set(value) {
-            // Al guardar en la DB, lo convierte automáticamente de Objeto a String
             this.setDataValue('track_data', JSON.stringify(value));
         }
+    }
+}, {
+    tableName: 'levels'
+});
+
+// Getter en el prototipo para retrocompatibilidad transparente
+Object.defineProperty(Level.prototype, 'difficulty', {
+    get() {
+        return this.Difficulty ? this.Difficulty.level : 'easy';
     }
 });
 

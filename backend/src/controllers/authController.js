@@ -1,7 +1,7 @@
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
-const { User, UserInstrument } = require('../models');
+const { User, UserInstrument, Instrument } = require('../models');
 
 const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
 const JWT_EXPIRES_IN = '24h';
@@ -13,7 +13,10 @@ const generateToken = (user) => {
 
 // Helper para obtener estadísticas mapeadas
 const getInstrumentStatsMap = async (userId) => {
-    const allStats = await UserInstrument.findAll({ where: { userId } });
+    const allStats = await UserInstrument.findAll({ 
+        where: { userId },
+        include: [Instrument]
+    });
     const statsMap = {};
     allStats.forEach(s => {
         statsMap[s.instrument] = { xp: s.xp, level: s.level, badges: s.badges };
