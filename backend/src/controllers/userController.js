@@ -75,3 +75,55 @@ exports.getLeaderboard = async (req, res) => {
         res.status(500).json({ message: "Error al obtener el ranking", error: error.message });
     }
 };
+
+exports.enrollInstrument = async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const { instrument } = req.body;
+
+        if (!instrument) {
+            return res.status(400).json({ message: "El instrumento es requerido" });
+        }
+
+        const validInstruments = ['ukulele', 'guitar_acoustic', 'guitar_electric', 'violin'];
+        if (!validInstruments.includes(instrument)) {
+            return res.status(400).json({ message: "Instrumento no válido" });
+        }
+
+        const [userInstrument, created] = await UserInstrument.findOrCreate({
+            where: { userId, instrument },
+            defaults: { xp: 0, level: 1, badges: [] }
+        });
+
+        const allStats = await UserInstrument.findAll({ where: { userId } });
+        const statsMap = {};
+        allStats.forEach(s => {
+            statsMap[s.instrument] = { xp: s.xp, level: s.level, badges: s.badges };
+        });
+
+        const user = await User.findByPk(userId);
+        if (user) {
+            user.targetInstrument = instrument;
+            await user.save();
+        }
+
+        res.json({
+            message: created ? "Inscrito con éxito al nuevo instrumento" : "Ya estás inscrito en este instrumento",
+            user: {
+                id: user.id,
+                username: user.username,
+                email: user.email,
+                xp: user.xp,
+                instrumentStats: statsMap,
+                streak: user.streak,
+                hearts: user.hearts,
+                profile: user.imgProfile ? user.imgProfile.toString() : null,
+                bio: user.bio,
+                targetInstrument: instrument
+            }
+        });
+    } catch (error) {
+        console.error("Error al inscribir instrumento:", error);
+        res.status(500).json({ message: "Error al inscribir el instrumento", error: error.message });
+    }
+};

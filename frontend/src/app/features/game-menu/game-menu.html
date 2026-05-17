@@ -13,13 +13,37 @@
 
   <!-- Selector de Instrumentos -->
   <div class="instrument-selector-bar">
-    @for (instr of availableInstruments; track instr.id) {
+    @for (instr of enrolledInstruments; track instr.id) {
       <button class="instr-tab" 
               [class.active]="selectedInstrument() === instr.id"
               (click)="cambiarInstrumento(instr.id)">
         <span class="instr-icon">{{ instr.icon }}</span>
         <span class="instr-name">{{ instr.name }}</span>
       </button>
+    }
+
+    @if (unenrolledInstruments.length > 0) {
+      <div class="add-instrument-wrapper">
+        <button class="instr-tab add-btn" 
+                [class.active]="showAddInstrumentMenu()"
+                (click)="toggleAddInstrumentMenu()">
+          <fa-icon [icon]="faPlus" class="add-icon"></fa-icon>
+          <span class="instr-name">Añadir</span>
+        </button>
+
+        <!-- Dropdown con instrumentos no inscritos -->
+        @if (showAddInstrumentMenu()) {
+          <div class="add-instrument-dropdown glass-morphism">
+            <h4>Inscribirse en:</h4>
+            @for (instr of unenrolledInstruments; track instr.id) {
+              <button class="dropdown-item" (click)="inscribirInstrumento(instr.id)">
+                <span class="item-icon">{{ instr.icon }}</span>
+                <span class="item-name">{{ instr.name }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
     }
   </div>
 

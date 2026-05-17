@@ -9,4 +9,7 @@ router.get('/leaderboard', userController.getLeaderboard);
 // Ruta para actualizar el perfil (requiere autenticación)
 router.put('/profile', authMiddleware, userController.updateProfile);
 
+// Ruta para inscribirse a un nuevo instrumento (requiere autenticación)
+router.post('/enroll-instrument', authMiddleware, userController.enrollInstrument);
+
 module.exports = router;

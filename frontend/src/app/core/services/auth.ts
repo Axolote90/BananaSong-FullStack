@@ -96,4 +96,18 @@ export class AuthService {
       })
     );
   }
+
+  enrollInstrument(instrument: string): Observable<any> {
+    const token = this.currentUser()?.token;
+    return this.http.post<any>(`${this.usersUrl}/enroll-instrument`, { instrument }, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).pipe(
+      tap((res: any) => {
+        if (res.user) {
+          const updatedUser = { ...this.currentUser(), ...res.user };
+          this.setSession(updatedUser);
+        }
+      })
+    );
+  }
 }

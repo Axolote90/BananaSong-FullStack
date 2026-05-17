@@ -40,7 +40,7 @@ export class AudioService {
     "violin": { strings: ["G3", "D4", "A4", "E5"], assets: "violin" }
   };
 
-  private currentInstrument = "ukulele";
+  public currentInstrument = "ukulele";
 
   // Cuerdas actuales basadas en el instrumento seleccionado
   public get tuningStrings() {

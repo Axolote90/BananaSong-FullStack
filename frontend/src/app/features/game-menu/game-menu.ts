@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { LevelService } from '../../core/services/level';
 import { Level } from '../../core/models/level';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlay, faEye, faGear, faUser, faFire, faHeart, faMusic } from '@fortawesome/free-solid-svg-icons'; 
+import { faPlay, faEye, faGear, faUser, faFire, faHeart, faMusic, faPlus } from '@fortawesome/free-solid-svg-icons'; 
 import { AuthService } from '../../core/services/auth';
 
 
@@ -31,11 +31,13 @@ export class GameMenuComponent implements OnInit {
   faFire = faFire;
   faHeart = faHeart;
   faMusic = faMusic;
+  faPlus = faPlus;
 
   // --- ESTADO (Signals) ---
   levels = signal<Level[]>([]);
   isLoading = signal(true);
   errorMessage = signal('');
+  showAddInstrumentMenu = signal(false);
 
   // --- TUTORIAL ESTADO ---
   isTutorialMode = signal(false);
@@ -51,6 +53,16 @@ export class GameMenuComponent implements OnInit {
     { id: 'guitar_electric', name: 'Eléctrica', icon: '⚡' },
     { id: 'violin', name: 'Violín', icon: '🎻' }
   ];
+
+  get enrolledInstruments() {
+    const stats = this.user()?.instrumentStats || {};
+    return this.availableInstruments.filter(instr => !!stats[instr.id]);
+  }
+
+  get unenrolledInstruments() {
+    const stats = this.user()?.instrumentStats || {};
+    return this.availableInstruments.filter(instr => !stats[instr.id]);
+  }
 
   // --- CICLO DE VIDA ---
   private route = inject(ActivatedRoute);
@@ -128,8 +140,25 @@ export class GameMenuComponent implements OnInit {
     this.selectedInstrument.set(id);
     this.cargarCanciones();
     
-    // Opcional: Persistir en el backend
+    // Persistir en el backend
     this.authService.updateOnboarding({ targetInstrument: id }).subscribe();
+  }
+
+  toggleAddInstrumentMenu() {
+    this.showAddInstrumentMenu.update(prev => !prev);
+  }
+
+  inscribirInstrumento(id: string) {
+    this.authService.enrollInstrument(id).subscribe({
+      next: () => {
+        this.selectedInstrument.set(id);
+        this.cargarCanciones();
+        this.showAddInstrumentMenu.set(false);
+      },
+      error: (err) => {
+        console.error('Error al inscribir instrumento:', err);
+      }
+    });
   }
 
   getInstrumentXP(): number {

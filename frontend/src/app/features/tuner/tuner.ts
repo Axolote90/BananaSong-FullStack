@@ -30,4 +30,18 @@ export class TunerComponent implements OnInit, OnDestroy {
   backToMenu() {
     this.router.navigate(['/menu']);
   }
+
+  get instrumentName(): string {
+    const instr = this.audioService.currentInstrument;
+    if (instr === 'guitar_acoustic') return 'Guitarra Acústica';
+    if (instr === 'guitar_electric') return 'Guitarra Eléctrica';
+    if (instr === 'violin') return 'Violín';
+    return 'Ukelele';
+  }
+
+  get stringNames(): string {
+    return this.audioService.tuningStrings
+      .map(s => s.replace(/\d/, ''))
+      .join(', ');
+  }
 }
