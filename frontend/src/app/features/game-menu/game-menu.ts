@@ -51,7 +51,9 @@ export class GameMenuComponent implements OnInit {
     { id: 'ukulele', name: 'Ukelele', icon: '🎸' },
     { id: 'guitar_acoustic', name: 'Acústica', icon: '🎵' },
     { id: 'guitar_electric', name: 'Eléctrica', icon: '⚡' },
-    { id: 'violin', name: 'Violín', icon: '🎻' }
+    { id: 'violin', name: 'Violín', icon: '🎻' },
+    { id: 'flute', name: 'Flauta Dulce', icon: '💨' },
+    { id: 'piano', name: 'Piano', icon: '🎹' }
   ];
 
   get enrolledInstruments() {

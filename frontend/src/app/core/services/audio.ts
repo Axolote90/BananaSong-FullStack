@@ -175,7 +175,7 @@ export class AudioService {
 
           const dominantFrequency = this.autoCorrelate(buffer, this.audioContext.sampleRate, rms);
 
-          if (dominantFrequency === -1 || dominantFrequency < 70 || dominantFrequency > 2000) {
+          if (dominantFrequency === -1 || dominantFrequency < 70 || dominantFrequency > 3000) {
             this.currentNote.set(null);
             this.tuningStatus.set(null);
             return;
@@ -186,10 +186,16 @@ export class AudioService {
           let minDiff = Infinity;
           let exactFreq = 0;
 
-          // Buscar la cuerda del ukelele más cercana a la frecuencia detectada
+          // La flauta dulce soprano suena físicamente una octava más alta de lo que se escribe
+          let targetTuningFrequency = dominantFrequency;
+          if (this.currentInstrument === 'flute') {
+            targetTuningFrequency = dominantFrequency / 2;
+          }
+
+          // Buscar la cuerda del instrumento más cercana a la frecuencia detectada
           for (const noteName of this.tuningStrings) {
             const freq = this.noteFrequencies[noteName];
-            const diff = Math.abs(freq - dominantFrequency);
+            const diff = Math.abs(freq - targetTuningFrequency);
             if (diff < 35 && diff < minDiff) {
               minDiff = diff;
               tuningNote = noteName;
@@ -199,7 +205,7 @@ export class AudioService {
 
           if (tuningNote) {
             // Calcular desviación en cents: 1200 * log2(f1 / f2)
-            const cents = 1200 * Math.log2(dominantFrequency / exactFreq);
+            const cents = 1200 * Math.log2(targetTuningFrequency / exactFreq);
 
             // Dado que la medición es exacta, reducimos el margen de 'Perfecto' a +-10 cents
             let instruction = 'Perfecto';
@@ -210,7 +216,7 @@ export class AudioService {
               note: tuningNote, 
               cents, 
               instruction, 
-              freq: dominantFrequency 
+              freq: targetTuningFrequency 
             });
           } else {
             this.tuningStatus.set(null);
@@ -220,8 +226,13 @@ export class AudioService {
           let foundNote: string | null = null;
           let minCentsDiff = Infinity;
 
+          let targetGameFrequency = dominantFrequency;
+          if (this.currentInstrument === 'flute') {
+            targetGameFrequency = dominantFrequency / 2;
+          }
+
           for (const [noteName, exactFreq] of Object.entries(this.noteFrequencies)) {
-            const cents = Math.abs(1200 * Math.log2(dominantFrequency / exactFreq));
+            const cents = Math.abs(1200 * Math.log2(targetGameFrequency / exactFreq));
             // 45 cents es un rango muy generoso para el juego (casi medio tono)
             if (cents < 45 && cents < minCentsDiff) { 
               minCentsDiff = cents;
