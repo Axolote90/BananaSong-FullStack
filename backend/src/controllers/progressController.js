@@ -1,4 +1,5 @@
 const { Progress, User, Level, UserInstrument } = require('../models');
+const { Op } = require('sequelize');
 
 exports.saveProgress = async (req, res) => {
     try {
@@ -11,37 +12,6 @@ exports.saveProgress = async (req, res) => {
         const instrument = level.instrument || 'ukulele';
         const user = await User.findByPk(userId);
         if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
-
-        // --- DETECTAR SI BATE RÉCORD EN TIEMPO REAL ---
-        const previousTopProgress = await Progress.findOne({
-            where: { levelId },
-            include: [{ model: User, attributes: ['username'] }],
-            order: [['score', 'DESC']]
-        });
-
-        let isRecordBeaten = false;
-        let formerTopUser = null;
-        let formerTopUserId = null;
-
-        console.log(`[DEBUG_WS] UserId actual: ${userId}`);
-        if (previousTopProgress) {
-            console.log(`[DEBUG_WS] Récord anterior encontrado:`);
-            console.log(`[DEBUG_WS] - userId record anterior: ${previousTopProgress.userId}`);
-            console.log(`[DEBUG_WS] - score record anterior: ${previousTopProgress.score}`);
-            console.log(`[DEBUG_WS] - score actual enviado: ${score}`);
-            console.log(`[DEBUG_WS] - comparación userId !==: ${previousTopProgress.userId !== userId}`);
-            console.log(`[DEBUG_WS] - comparación score >: ${score > previousTopProgress.score}`);
-        } else {
-            console.log(`[DEBUG_WS] No hay récord anterior para el levelId ${levelId}`);
-        }
-
-        if (previousTopProgress && previousTopProgress.userId !== userId) {
-            if (score > previousTopProgress.score) {
-                isRecordBeaten = true;
-                formerTopUser = previousTopProgress.User ? previousTopProgress.User.username : 'Otro jugador';
-                formerTopUserId = previousTopProgress.userId;
-            }
-        }
 
         // Buscar/Actualizar progreso
         let progress = await Progress.findOne({ where: { userId, levelId } });
@@ -68,10 +38,12 @@ exports.saveProgress = async (req, res) => {
             defaults: { xp: 0, level: 1, badges: [] }
         });
 
+        // Obtener XP antes y después del progreso para detectar superaciones en ranking
+        const oldXp = stats.xp;
         const earnedXp = Math.floor(score * 0.1);
         stats.xp += earnedXp;
+        const newXp = stats.xp;
         
-        const oldLevel = stats.level;
         stats.level = Math.floor(stats.xp / 1000) + 1;
         
         if (!stats.badges) stats.badges = [];
@@ -100,10 +72,23 @@ exports.saveProgress = async (req, res) => {
         user.lastLoginDate = now;
         await user.save();
 
+        // DETECTAR USUARIOS SUPERADOS EN EL RANKING GENERAL DE ESTE INSTRUMENTO
+        const surpassedUsers = await UserInstrument.findAll({
+            where: {
+                instrument,
+                userId: { [Op.ne]: userId }, // Excluir al jugador actual
+                xp: {
+                    [Op.between]: [oldXp, newXp - 1] // Tenían más (o igual) XP que el oldXp del jugador, pero quedan por debajo de su newXp
+                }
+            },
+            include: [{ model: User, attributes: ['username'] }]
+        });
+
         // EMITIR NOTIFICACIONES EN TIEMPO REAL VÍA WEBSOCKETS
         const io = req.app.get('io');
         const onlineUsers = req.app.get('onlineUsers');
 
+        console.log(`[DEBUG_WS] UserId actual: ${userId} (${user.username}). Instrumento: ${instrument}. XP anterior: ${oldXp} -> XP nueva: ${newXp}`);
         console.log(`[DEBUG_WS] Encontrado io: ${!!io}, Encontrado onlineUsers: ${!!onlineUsers}`);
         if (onlineUsers) {
             console.log(`[DEBUG_WS] Usuarios online en el mapa:`, Array.from(onlineUsers.entries()));
@@ -114,34 +99,44 @@ exports.saveProgress = async (req, res) => {
             io.emit('leaderboard_update', { instrument });
             console.log(`[DEBUG_WS] Emitida actualización de leaderboard para: ${instrument}`);
 
-            // 2. Notificar récord batido
-            if (isRecordBeaten) {
-                console.log(`[DEBUG_WS] ¡Récord batido detectado! Emitiendo eventos...`);
-                console.log(`[DEBUG_WS] - ex-record: ${formerTopUser} (${formerTopUserId})`);
-                console.log(`[DEBUG_WS] - nuevo record: ${user.username} (${userId})`);
+            // 2. Notificar a cada uno de los rivales que fueron superados en el ranking
+            if (surpassedUsers && surpassedUsers.length > 0) {
+                console.log(`[DEBUG_WS] ¡Superación en el ranking detectada! Superados: ${surpassedUsers.length}`);
                 
-                // Broadcast a toda la comunidad online
-                io.emit('record_beaten_broadcast', {
-                    levelTitle: level.title,
-                    formerTopUser,
-                    newTopUser: user.username,
-                    score
-                });
-                console.log(`[DEBUG_WS] Emitido record_beaten_broadcast`);
+                const instrLabel = instrument === 'ukulele' 
+                    ? 'Ukelele' 
+                    : (instrument === 'guitar_acoustic' ? 'Guitarra Acústica' : (instrument === 'guitar_electric' ? 'Guitarra Eléctrica' : 'Violín'));
 
-                // Alerta específica al rival superado si está online
-                const stringFormerTopUserId = String(formerTopUserId);
-                if (onlineUsers && onlineUsers.has(stringFormerTopUserId)) {
-                    const targetSocketId = onlineUsers.get(stringFormerTopUserId);
-                    io.to(targetSocketId).emit('record_beaten_personal', {
-                        levelTitle: level.title,
+                for (const surpassed of surpassedUsers) {
+                    const rivalId = String(surpassed.userId);
+                    const rivalUsername = surpassed.User ? surpassed.User.username : 'Otro jugador';
+                    
+                    console.log(`[DEBUG_WS] - Rival superado: ${rivalUsername} (${rivalId}). Rival XP: ${surpassed.xp}`);
+
+                    // Broadcast a toda la comunidad online (general)
+                    io.emit('record_beaten_broadcast', {
+                        instrumentName: instrLabel,
+                        formerTopUser: rivalUsername,
                         newTopUser: user.username,
-                        score
+                        xp: newXp
                     });
-                    console.log(`[DEBUG_WS] Emitido record_beaten_personal al rival: ${stringFormerTopUserId} en socket: ${targetSocketId}`);
-                } else {
-                    console.log(`[DEBUG_WS] Rival ${stringFormerTopUserId} no está online en el mapa.`);
+                    console.log(`[DEBUG_WS] Emitido record_beaten_broadcast para el rival ${rivalUsername}`);
+
+                    // Alerta específica al rival superado si está online
+                    if (onlineUsers && onlineUsers.has(rivalId)) {
+                        const targetSocketId = onlineUsers.get(rivalId);
+                        io.to(targetSocketId).emit('record_beaten_personal', {
+                            instrumentName: instrLabel,
+                            newTopUser: user.username,
+                            xp: newXp
+                        });
+                        console.log(`[DEBUG_WS] Emitido record_beaten_personal a ${rivalUsername} en el socket ${targetSocketId}`);
+                    } else {
+                        console.log(`[DEBUG_WS] Rival ${rivalUsername} (${rivalId}) no está online.`);
+                    }
                 }
+            } else {
+                console.log(`[DEBUG_WS] Ningún usuario fue superado en el ranking con este progreso.`);
             }
         }
 
