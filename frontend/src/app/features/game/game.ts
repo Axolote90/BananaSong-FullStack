@@ -198,8 +198,9 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   setupTutorial() {
     this.isTutorialMode.set(true);
     
-    // Obtener el instrumento activo seleccionado por el usuario desde AuthService
-    const userInstrument = this.authService.currentUser()?.targetInstrument || 'ukulele';
+    // Obtener el instrumento activo seleccionado por el usuario desde query params o AuthService
+    const queryInstrument = this.route.snapshot.queryParamMap.get('instrument');
+    const userInstrument = queryInstrument || this.authService.currentUser()?.targetInstrument || 'ukulele';
     const isGuitar = userInstrument.startsWith('guitar');
 
     this.instrument.set(userInstrument);
