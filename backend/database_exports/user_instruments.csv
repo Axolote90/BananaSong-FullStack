@@ -1,0 +1,8 @@
+id,instrument,xp,level,badges,userId,createdAt,updatedAt
+1,ukulele,44,1,[],4bb7045a-972d-4997-be8b-5ca21eb3c896,Sat May 16 2026 17:09:04 GMT-0600 (Central Standard Time),Sat May 16 2026 17:09:04 GMT-0600 (Central Standard Time)
+2,ukulele,182,1,[],9110880c-3494-4c58-9847-c5bef5d35721,Sat May 16 2026 17:09:04 GMT-0600 (Central Standard Time),Sat May 16 2026 22:49:49 GMT-0600 (Central Standard Time)
+3,ukulele,180,1,[],a9451a35-9d3e-43d7-9b15-94981c12657b,Sat May 16 2026 17:09:04 GMT-0600 (Central Standard Time),Sat May 16 2026 17:09:04 GMT-0600 (Central Standard Time)
+4,ukulele,10500,11,"[""novice"",""apprentice"",""specialist"",""master""]",bfc2b276-f839-4ad2-aaf9-fed982f86f42,Sat May 16 2026 17:09:04 GMT-0600 (Central Standard Time),Sat May 16 2026 17:48:46 GMT-0600 (Central Standard Time)
+5,guitar_acoustic,0,1,[],455e0cd3-26fe-4091-a381-03bc9e8107ce,Sat May 16 2026 21:48:00 GMT-0600 (Central Standard Time),Sat May 16 2026 21:48:00 GMT-0600 (Central Standard Time)
+6,guitar_acoustic,0,1,[],bfc2b276-f839-4ad2-aaf9-fed982f86f42,Sat May 16 2026 22:11:13 GMT-0600 (Central Standard Time),Sat May 16 2026 22:11:13 GMT-0600 (Central Standard Time)
+7,ukulele,183,1,[],dcafe4eb-0b73-4807-855c-b4f90c2ebcd5,Sat May 16 2026 22:20:46 GMT-0600 (Central Standard Time),Sat May 16 2026 22:48:44 GMT-0600 (Central Standard Time)

@@ -1,0 +1,13 @@
+id,username,bio,xp,streak,hearts,email,isConfirmed,createdAt,updatedAt
+0318c158-8440-4b57-adf6-ee26b65400e9,LuisM,,0,0,5,luis.manuel0456@gmail.com,0,Sat May 16 2026 15:16:53 GMT-0600 (Central Standard Time),Sat May 16 2026 15:17:15 GMT-0600 (Central Standard Time)
+455e0cd3-26fe-4091-a381-03bc9e8107ce,Pitt zahot,,0,0,5,Pittzahot@example.com,0,Sat May 16 2026 20:13:03 GMT-0600 (Central Standard Time),Sat May 16 2026 20:48:45 GMT-0600 (Central Standard Time)
+4bb7045a-972d-4997-be8b-5ca21eb3c896,tester,,44,4,5,,0,Fri May 15 2026 23:33:48 GMT-0600 (Central Standard Time),Fri May 15 2026 23:43:49 GMT-0600 (Central Standard Time)
+6e3e7035-63d4-4a1b-ae67-d6d5dd313b1e,testuser_123456,,0,0,5,,0,Sat May 16 2026 14:58:59 GMT-0600 (Central Standard Time),Sat May 16 2026 15:23:19 GMT-0600 (Central Standard Time)
+72f1d2b7-d754-46ad-8d20-67e774d588c0,testuser,,0,0,5,,0,Sat May 16 2026 14:55:00 GMT-0600 (Central Standard Time),Sat May 16 2026 14:55:00 GMT-0600 (Central Standard Time)
+90eaedca-3953-4a9a-9ddc-ff7347d77ece,alvaro,,0,0,5,,0,Sat May 16 2026 14:30:27 GMT-0600 (Central Standard Time),Sat May 16 2026 14:30:27 GMT-0600 (Central Standard Time)
+9110880c-3494-4c58-9847-c5bef5d35721,Test02,,182,10,5,test02@example.com,0,Sat May 16 2026 16:08:12 GMT-0600 (Central Standard Time),Sat May 16 2026 22:49:49 GMT-0600 (Central Standard Time)
+a9451a35-9d3e-43d7-9b15-94981c12657b,Jugador1,,180,19,5,,0,Wed Mar 18 2026 22:37:58 GMT-0600 (Central Standard Time),Sat May 16 2026 14:42:20 GMT-0600 (Central Standard Time)
+bfc2b276-f839-4ad2-aaf9-fed982f86f42,Test03,,10500,5,5,test03@example.com,0,Sat May 16 2026 16:37:36 GMT-0600 (Central Standard Time),Sat May 16 2026 22:16:19 GMT-0600 (Central Standard Time)
+d634928f-67e1-46b3-9e31-727a07b0f4ac,tester789,,0,0,5,tester789@example.com,0,Sat May 16 2026 15:24:24 GMT-0600 (Central Standard Time),Sat May 16 2026 15:24:48 GMT-0600 (Central Standard Time)
+dcafe4eb-0b73-4807-855c-b4f90c2ebcd5,Test04,,183,9,5,test04@example.com,0,Sat May 16 2026 22:18:06 GMT-0600 (Central Standard Time),Sat May 16 2026 22:48:44 GMT-0600 (Central Standard Time)
+ffa72c54-3d85-4d40-bd0e-e805aae32d3f,pruebaDrako,,0,0,5,pedo@si.com,0,Sat May 16 2026 21:44:52 GMT-0600 (Central Standard Time),Sat May 16 2026 21:45:48 GMT-0600 (Central Standard Time)
