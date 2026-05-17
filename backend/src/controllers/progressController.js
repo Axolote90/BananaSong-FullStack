@@ -5,13 +5,33 @@ exports.saveProgress = async (req, res) => {
         const { levelId, score, stars, maxCombo, accuracy } = req.body;
         const userId = req.user.id; 
 
-        // 1. Obtener el nivel para saber el instrumento
         const level = await Level.findByPk(levelId);
         if (!level) return res.status(404).json({ message: "Nivel no encontrado" });
 
         const instrument = level.instrument || 'ukulele';
+        const user = await User.findByPk(userId);
+        if (!user) return res.status(404).json({ message: "Usuario no encontrado" });
 
-        // 2. Buscar/Actualizar progreso
+        // --- DETECTAR SI BATE RÉCORD EN TIEMPO REAL ---
+        const previousTopProgress = await Progress.findOne({
+            where: { levelId },
+            include: [{ model: User, attributes: ['username'] }],
+            order: [['score', 'DESC']]
+        });
+
+        let isRecordBeaten = false;
+        let formerTopUser = null;
+        let formerTopUserId = null;
+
+        if (previousTopProgress && previousTopProgress.userId !== userId) {
+            if (score > previousTopProgress.score) {
+                isRecordBeaten = true;
+                formerTopUser = previousTopProgress.User ? previousTopProgress.User.username : 'Otro jugador';
+                formerTopUserId = previousTopProgress.userId;
+            }
+        }
+
+        // Buscar/Actualizar progreso
         let progress = await Progress.findOne({ where: { userId, levelId } });
 
         if (progress) {
@@ -30,7 +50,7 @@ exports.saveProgress = async (req, res) => {
             });
         }
 
-        // 3. ACTUALIZAR ESTADÍSTICAS INDEPENDIENTES (UserInstrument)
+        // ACTUALIZAR ESTADÍSTICAS INDEPENDIENTES (UserInstrument)
         const [stats, created] = await UserInstrument.findOrCreate({
             where: { userId, instrument },
             defaults: { xp: 0, level: 1, badges: [] }
@@ -39,7 +59,6 @@ exports.saveProgress = async (req, res) => {
         const earnedXp = Math.floor(score * 0.1);
         stats.xp += earnedXp;
         
-        // Lógica de Niveles e Insignias
         const oldLevel = stats.level;
         stats.level = Math.floor(stats.xp / 1000) + 1;
         
@@ -52,30 +71,53 @@ exports.saveProgress = async (req, res) => {
         if (xp >= 4000 && !currentBadges.includes('specialist')) currentBadges.push('specialist');
         if (xp >= 10000 && !currentBadges.includes('master')) currentBadges.push('master');
 
-        // Para que Sequelize detecte cambios en JSON
         stats.changed('badges', true);
         await stats.save();
 
-        // 4. Actualizar Usuario (Racha y XP Global opcional)
-        const user = await User.findByPk(userId);
-        if (user) {
-            user.xp += earnedXp; // Mantenemos el global como "Suma de todos"
-            
-            // Lógica de racha
-            const now = new Date();
-            if (!user.lastLoginDate) {
-                user.streak = 1;
-            } else {
-                const diffTime = Math.abs(now - user.lastLoginDate);
-                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-                if (diffDays === 1) user.streak += 1;
-                else if (diffDays > 1) user.streak = 1;
+        // Actualizar Usuario
+        user.xp += earnedXp; 
+        const now = new Date();
+        if (!user.lastLoginDate) {
+            user.streak = 1;
+        } else {
+            const diffTime = Math.abs(now - user.lastLoginDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+            if (diffDays === 1) user.streak += 1;
+            else if (diffDays > 1) user.streak = 1;
+        }
+        user.lastLoginDate = now;
+        await user.save();
+
+        // EMITIR NOTIFICACIONES EN TIEMPO REAL VÍA WEBSOCKETS
+        const io = req.app.get('io');
+        const onlineUsers = req.app.get('onlineUsers');
+
+        if (io) {
+            // 1. Notificar actualización de Leaderboard en vivo
+            io.emit('leaderboard_update', { instrument });
+
+            // 2. Notificar récord batido
+            if (isRecordBeaten) {
+                // Broadcast a toda la comunidad online
+                io.emit('record_beaten_broadcast', {
+                    levelTitle: level.title,
+                    formerTopUser,
+                    newTopUser: user.username,
+                    score
+                });
+
+                // Alerta específica al rival superado si está online
+                if (onlineUsers && onlineUsers.has(Number(formerTopUserId))) {
+                    const targetSocketId = onlineUsers.get(Number(formerTopUserId));
+                    io.to(targetSocketId).emit('record_beaten_personal', {
+                        levelTitle: level.title,
+                        newTopUser: user.username,
+                        score
+                    });
+                }
             }
-            user.lastLoginDate = now;
-            await user.save();
         }
 
-        // Obtener todas las stats para devolverlas al front
         const allStats = await UserInstrument.findAll({ where: { userId } });
         const statsMap = {};
         allStats.forEach(s => {

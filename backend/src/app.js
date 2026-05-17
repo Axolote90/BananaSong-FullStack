@@ -42,12 +42,33 @@ const io = new Server(server, {
         methods: ["GET", "POST"]
     }
 });
+app.set('io', io);
+
+// Mapa de usuarios online: userId -> socketId
+const onlineUsers = new Map();
+app.set('onlineUsers', onlineUsers);
 
 // Eventos de Socket.io
 io.on('connection', (socket) => {
     console.log(`Cliente conectado al túnel: ${socket.id}`);
     
+    // El cliente se identifica al conectarse
+    socket.on('identify', (userId) => {
+        if (userId) {
+            onlineUsers.set(Number(userId), socket.id);
+            console.log(`👤 Usuario online registrado: UserId ${userId} -> Socket ${socket.id}`);
+        }
+    });
+    
     socket.on('disconnect', () => {
+        // Limpiar el mapa
+        for (const [uid, sid] of onlineUsers.entries()) {
+            if (sid === socket.id) {
+                onlineUsers.delete(uid);
+                console.log(`👤 Usuario offline: UserId ${uid}`);
+                break;
+            }
+        }
         console.log('Cliente se ha desconectado');
     });
 });

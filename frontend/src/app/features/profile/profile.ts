@@ -6,6 +6,7 @@ import { AuthService } from '../../core/services/auth';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faArrowLeft, faUserEdit, faTrophy, faSignOutAlt, faCamera } from '@fortawesome/free-solid-svg-icons';
 import { ImageCropperComponent } from 'ngx-image-cropper';
+import { SocketService } from '../../core/services/socket';
 
 @Component({
   selector: 'app-profile',
@@ -17,6 +18,7 @@ import { ImageCropperComponent } from 'ngx-image-cropper';
 export class ProfileComponent implements OnInit {
   authService = inject(AuthService);
   private router = inject(Router);
+  private socketService = inject(SocketService);
 
   faArrowLeft = faArrowLeft;
   faUserEdit = faUserEdit;
@@ -56,6 +58,14 @@ export class ProfileComponent implements OnInit {
 
   ngOnInit() {
     this.loadLeaderboard();
+    
+    // Escuchar actualizaciones de Leaderboard en tiempo real vía WebSockets
+    this.socketService.on('leaderboard_update', (data) => {
+      if (data && data.instrument === this.selectedLeaderboardInstrument()) {
+        this.loadLeaderboard();
+      }
+    });
+
     this.authService.getProfile().subscribe({
       next: () => {
         if (this.user()) {

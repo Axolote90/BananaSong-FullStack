@@ -1,1 +1,15 @@
 <router-outlet></router-outlet>
+
+<!-- Contenedor flotante de notificaciones en tiempo real -->
+<div class="realtime-notifications-container">
+  @for (notif of socketService.notifications(); track notif.id) {
+    <div class="notif-card glass-morphism" [class]="notif.type" (click)="socketService.removeNotification(notif.id)">
+      <div class="notif-icon">{{ notif.icon }}</div>
+      <div class="notif-content">
+        <h4 class="notif-title">{{ notif.title }}</h4>
+        <p class="notif-message">{{ notif.message }}</p>
+      </div>
+      <button class="notif-close">&times;</button>
+    </div>
+  }
+</div>

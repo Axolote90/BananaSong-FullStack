@@ -1,0 +1,131 @@
+/* --- REALTIME NOTIFICATIONS OVERLAY --- */
+.realtime-notifications-container {
+  position: fixed;
+  top: 25px;
+  right: 25px;
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 380px;
+  max-width: 90vw;
+  pointer-events: none; /* Let clicks pass through empty spaces */
+}
+
+.notif-card {
+  pointer-events: auto; /* Re-enable clicks on the cards themselves */
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 20px;
+  border-radius: 24px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.4);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: notifSlideIn 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+
+.notif-card:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.5);
+}
+
+/* Glassmorphism base */
+.notif-card.glass-morphism {
+  background: rgba(10, 10, 15, 0.8);
+  backdrop-filter: blur(25px) saturate(140%);
+  -webkit-backdrop-filter: blur(25px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Community Record (Gold Theme) */
+.notif-card.community {
+  border-left: 5px solid #f1c40f;
+  border-color: rgba(241, 196, 15, 0.25) rgba(241, 196, 15, 0.25) rgba(241, 196, 15, 0.25) #f1c40f;
+  box-shadow: 0 10px 30px rgba(241, 196, 15, 0.1), 0 15px 35px rgba(0, 0, 0, 0.4);
+}
+.notif-card.community .notif-title {
+  color: #f1c40f;
+  text-shadow: 0 0 10px rgba(241, 196, 15, 0.2);
+}
+
+/* Rivalry Record Beaten (Crimson Red Theme) */
+.notif-card.rivalry {
+  border-left: 5px solid #e74c3c;
+  border-color: rgba(231, 76, 60, 0.25) rgba(231, 76, 60, 0.25) rgba(231, 76, 60, 0.25) #e74c3c;
+  box-shadow: 0 10px 30px rgba(231, 76, 60, 0.15), 0 15px 35px rgba(0, 0, 0, 0.4);
+  animation: notifPulseRivalry 3s infinite ease-in-out, notifSlideIn 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+}
+.notif-card.rivalry .notif-title {
+  color: #e74c3c;
+  text-shadow: 0 0 10px rgba(231, 76, 60, 0.3);
+}
+
+/* Card inner items */
+.notif-icon {
+  font-size: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 2px;
+}
+
+.notif-content {
+  flex: 1;
+}
+
+.notif-title {
+  margin: 0 0 6px 0;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.notif-message {
+  margin: 0;
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.4;
+  font-weight: 500;
+}
+
+.notif-close {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  line-height: 1;
+  transition: color 0.2s ease;
+}
+
+.notif-close:hover {
+  color: #fff;
+}
+
+/* Keyframes animations */
+@keyframes notifSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(110%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes notifPulseRivalry {
+  0%, 100% {
+    box-shadow: 0 10px 30px rgba(231, 76, 60, 0.15), 0 15px 35px rgba(0, 0, 0, 0.4);
+  }
+  50% {
+    box-shadow: 0 10px 35px rgba(231, 76, 60, 0.35), 0 15px 35px rgba(0, 0, 0, 0.4);
+    border-color: rgba(231, 76, 60, 0.4) rgba(231, 76, 60, 0.4) rgba(231, 76, 60, 0.4) #e74c3c;
+  }
+}
