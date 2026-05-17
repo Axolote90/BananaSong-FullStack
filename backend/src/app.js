@@ -23,15 +23,17 @@ app.set('trust proxy', 1); // Confiar en proxies inversos como ngrok
 const server = http.createServer(app);
 
 // Middleware
-app.use(helmet()); // Seguridad en cabeceras HTTP
+app.use(helmet({
+    contentSecurityPolicy: false // Desactivar CSP estricta que bloquea recursos inline de Angular
+}));
 app.use(cors()); // Permite peticiones externas (Frontend separado / App Android)
 app.use(express.json({ limit: '50mb' })); 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-// Global Rate Limiting
+// Global Rate Limiting (Ajustado para testing local y Ngrok)
 const globalLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutos
-    max: 100, // Limita cada IP a 100 peticiones por ventana de 15 min
+    max: 5000, // Incrementado de 100 a 5000 para evitar bloqueos falsos positivos en Ngrok
     message: 'Demasiadas peticiones desde esta IP, por favor intenta de nuevo en 15 minutos.'
 });
 app.use('/api', globalLimiter); // Aplicar solo a las rutas de API
