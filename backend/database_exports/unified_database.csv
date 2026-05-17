@@ -1,0 +1,23 @@
+user_id,username,user_email,user_xp,user_streak,user_hearts,instrument,instrument_xp,instrument_level,instrument_badges,played_level_title,played_level_difficulty,played_level_score,played_level_stars,played_level_combo,played_level_accuracy
+0318c158-8440-4b57-adf6-ee26b65400e9,LuisM,luis.manuel0456@gmail.com,0,0,5,,,,[],,,,,,
+455e0cd3-26fe-4091-a381-03bc9e8107ce,Pitt zahot,Pittzahot@example.com,0,0,5,guitar_acoustic,0,1,[],,,,,,
+4bb7045a-972d-4997-be8b-5ca21eb3c896,tester,,44,4,5,ukulele,44,1,[],Lección 1: Cuerdas al Aire,easy,80,3,4,100
+4bb7045a-972d-4997-be8b-5ca21eb3c896,tester,,44,4,5,ukulele,44,1,[],La Cucaracha,easy,230,2,15,82
+6e3e7035-63d4-4a1b-ae67-d6d5dd313b1e,testuser_123456,,0,0,5,,,,[],,,,,,
+72f1d2b7-d754-46ad-8d20-67e774d588c0,testuser,,0,0,5,,,,[],,,,,,
+90eaedca-3953-4a9a-9ddc-ff7347d77ece,alvaro,,0,0,5,,,,[],,,,,,
+9110880c-3494-4c58-9847-c5bef5d35721,Test02,test02@example.com,182,10,5,ukulele,182,1,[],Lección 1: Cuerdas al Aire,easy,80,3,4,100
+9110880c-3494-4c58-9847-c5bef5d35721,Test02,test02@example.com,182,10,5,ukulele,182,1,[],La Cucaracha,easy,280,2,15,88
+9110880c-3494-4c58-9847-c5bef5d35721,Test02,test02@example.com,182,10,5,ukulele,182,1,[],Estrellita Dónde Estás (Twinkle Twinkle),easy,185,2,7,80
+a9451a35-9d3e-43d7-9b15-94981c12657b,Jugador1,,180,19,5,ukulele,180,1,[],Lección 1: Cuerdas al Aire,easy,80,3,4,100
+a9451a35-9d3e-43d7-9b15-94981c12657b,Jugador1,,180,19,5,ukulele,180,1,[],María tenía un corderito,easy,222,3,11,90
+a9451a35-9d3e-43d7-9b15-94981c12657b,Jugador1,,180,19,5,ukulele,180,1,[],La Cucaracha,easy,250,2,15,85
+bfc2b276-f839-4ad2-aaf9-fed982f86f42,Test03,test03@example.com,10500,5,5,ukulele,10500,11,"[""novice"",""apprentice"",""specialist"",""master""]",Lección 1: Cuerdas al Aire,easy,70,3,4,94
+bfc2b276-f839-4ad2-aaf9-fed982f86f42,Test03,test03@example.com,10500,5,5,ukulele,10500,11,"[""novice"",""apprentice"",""specialist"",""master""]",La Cucaracha,easy,300,3,17,94
+bfc2b276-f839-4ad2-aaf9-fed982f86f42,Test03,test03@example.com,10500,5,5,ukulele,10500,11,"[""novice"",""apprentice"",""specialist"",""master""]",Estrellita Dónde Estás (Twinkle Twinkle),easy,200,2,6,80
+bfc2b276-f839-4ad2-aaf9-fed982f86f42,Test03,test03@example.com,10500,5,5,ukulele,10500,11,"[""novice"",""apprentice"",""specialist"",""master""]",Cumpleaños Feliz,medium,135,2,6,73
+d634928f-67e1-46b3-9e31-727a07b0f4ac,tester789,tester789@example.com,0,0,5,,,,[],,,,,,
+dcafe4eb-0b73-4807-855c-b4f90c2ebcd5,Test04,test04@example.com,183,9,5,ukulele,183,1,[],Estrellita Dónde Estás (Twinkle Twinkle),easy,170,2,3,71
+dcafe4eb-0b73-4807-855c-b4f90c2ebcd5,Test04,test04@example.com,183,9,5,ukulele,183,1,[],Lección 1: Cuerdas al Aire,easy,80,3,4,100
+dcafe4eb-0b73-4807-855c-b4f90c2ebcd5,Test04,test04@example.com,183,9,5,ukulele,183,1,[],La Cucaracha,easy,285,3,16,91
+ffa72c54-3d85-4d40-bd0e-e805aae32d3f,pruebaDrako,pedo@si.com,0,0,5,,,,[],,,,,,
