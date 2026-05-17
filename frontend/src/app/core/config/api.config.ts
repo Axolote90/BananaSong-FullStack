@@ -6,7 +6,7 @@
  */
 
 // MODO REMOTO (ngrok): Reemplaza la URL de abajo con la nueva de ngrok cada vez que inicies el túnel
-export const API_BASE_URL = 'https://30fe-2806-2f0-7580-f185-ae4e-65ff-fea3-5490.ngrok-free.app'; 
+export const API_BASE_URL = 'https://efca-2806-2f0-7580-f185-ae4e-65ff-fea3-5490.ngrok-free.app'; 
 
 // MODO LOCAL (descomenta para volver a local y comenta la de arriba)
 // export const API_BASE_URL = 'http://localhost:3000'; 
