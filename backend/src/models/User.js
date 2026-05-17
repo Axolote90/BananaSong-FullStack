@@ -51,6 +51,35 @@ const User = sequelize.define('User', {
         type: DataTypes.INTEGER,
         defaultValue: 5
     },
+    email: {
+        type: DataTypes.STRING,
+        allowNull: true, // Temporalmente true para evitar error de validación con registros existentes
+        unique: true,
+        validate: { isEmail: true }
+    },
+    isConfirmed: {
+        type: DataTypes.BOOLEAN,
+        defaultValue: false
+    },
+    confirmationToken: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    // Instrumentos que ya toca (formato JSON: { "ukulele": "beginner", "guitar": "none" })
+    knownInstruments: {
+        type: DataTypes.JSON,
+        allowNull: true
+    },
+    // Instrumento que está aprendiendo actualmente
+    targetInstrument: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
+    // Nivel general o específico
+    skillLevel: {
+        type: DataTypes.STRING,
+        allowNull: true
+    },
     lastLoginDate: {
         type: DataTypes.DATE,
         allowNull: true

@@ -27,6 +27,11 @@ const Progress = sequelize.define('Progress', {
     accuracy: {
         type: DataTypes.FLOAT,
         defaultValue: 0.0
+    },
+    instrument: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        defaultValue: 'ukulele'
     }
 });
 

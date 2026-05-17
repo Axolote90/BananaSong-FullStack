@@ -9,8 +9,8 @@
 <div class="auth-wrapper">
   <div class="bento-item auth-card">
     <div class="auth-header">
-      <h1>Banana Song <span class="badge">Ukelele</span></h1>
-      <p>Aprende ukelele jugando</p>
+      <h1>Banana Song <span class="badge">Multi</span></h1>
+      <p>Aprende música jugando</p>
     </div>
 
     <div class="input-group">
@@ -37,8 +37,10 @@
         @else { Iniciar Sesión }
       </button>
       
-      <button class="btn-secondary" (click)="register()" [disabled]="isLoading()">
-        Crear Cuenta
+      <div class="separator"><span>o</span></div>
+
+      <button class="btn-secondary" routerLink="/onboarding" [disabled]="isLoading()">
+        Crear cuenta nueva
       </button>
     </div>
 

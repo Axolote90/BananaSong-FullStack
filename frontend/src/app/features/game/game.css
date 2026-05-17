@@ -307,3 +307,113 @@ canvas {
     font-size: 2rem;
   }
 }
+
+/* --- TUTORIAL STYLES --- */
+.tutorial-bubble-container {
+  position: absolute;
+  top: 15%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 200;
+  width: 90%;
+  max-width: 500px;
+  pointer-events: none;
+}
+
+.tutorial-bubble {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(25px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 25px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  text-align: center;
+  pointer-events: auto;
+  animation: floatIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes floatIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.tutorial-bubble p {
+  font-size: 1.2rem;
+  line-height: 1.5;
+  margin-bottom: 20px;
+  color: white;
+  font-weight: 500;
+}
+
+.btn-tutorial {
+  background: #f1c40f;
+  color: #000;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.btn-tutorial:hover {
+  transform: scale(1.05);
+  background: #fff;
+}
+
+.hint-pulse {
+  color: #00ffff;
+  font-weight: 700;
+  animation: pulseText 1.5s infinite;
+}
+
+@keyframes pulseText {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* --- LEVEL UP MODAL --- */
+.level-up-overlay {
+  z-index: 300;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(15px);
+}
+
+.level-up-card {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(241, 196, 15, 0.5);
+  border-radius: 30px;
+  padding: 40px;
+  text-align: center;
+  box-shadow: 0 0 50px rgba(241, 196, 15, 0.3);
+  animation: levelUpPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes levelUpPop {
+  0% { transform: scale(0.5); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+.badge-icon {
+  font-size: 5rem;
+  margin-bottom: 20px;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% {transform: translateY(0);}
+  40% {transform: translateY(-20px);}
+  60% {transform: translateY(-10px);}
+}
+
+.level-up-card h1 {
+  color: #f1c40f;
+  font-size: 3rem;
+  margin-bottom: 10px;
+  text-shadow: 0 0 20px rgba(241, 196, 15, 0.5);
+}
+
+.level-up-card p {
+  font-size: 1.5rem;
+  margin-bottom: 30px;
+}

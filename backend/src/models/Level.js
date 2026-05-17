@@ -11,6 +11,10 @@ const Level = sequelize.define('Level', {
         type: DataTypes.ENUM('easy', 'medium', 'hard'),
         defaultValue: 'easy'
     },
+    instrument: {
+        type: DataTypes.STRING,
+        defaultValue: 'ukulele' // Valor por defecto para compatibilidad
+    },
     bpm: {
         type: DataTypes.INTEGER, // Beats por minuto, para controlar la velocidad del scroll
         defaultValue: 80

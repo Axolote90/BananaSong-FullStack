@@ -26,6 +26,14 @@ export class ProfileComponent implements OnInit {
 
   user = this.authService.currentUser;
   leaderboard = signal<any[]>([]);
+  selectedLeaderboardInstrument = signal<string>('ukulele');
+  
+  instruments = [
+    { id: 'ukulele', name: 'Ukelele', icon: '🎸' },
+    { id: 'guitar_acoustic', name: 'Acústica', icon: '🎵' },
+    { id: 'guitar_electric', name: 'Eléctrica', icon: '⚡' },
+    { id: 'violin', name: 'Violín', icon: '🎻' }
+  ];
   
   // Imagen y Recorte
   imageChangedEvent: any = '';
@@ -39,8 +47,23 @@ export class ProfileComponent implements OnInit {
     bio: ''
   };
 
+  badgeDefinitions: any = {
+    'novice': { name: 'Novato', icon: '🥉', description: '500 XP alcanzados' },
+    'apprentice': { name: 'Aprendiz', icon: '🥈', description: '1500 XP alcanzados' },
+    'specialist': { name: 'Especialista', icon: '🥇', description: '4000 XP alcanzados' },
+    'master': { name: 'Maestro', icon: '👑', description: '¡10000 XP! Eres una leyenda' }
+  };
+
   ngOnInit() {
     this.loadLeaderboard();
+    this.authService.getProfile().subscribe({
+      next: () => {
+        if (this.user()) {
+          this.editData.username = this.user().username;
+          this.editData.bio = this.user().bio || '';
+        }
+      }
+    });
     if (this.user()) {
       this.editData.username = this.user().username;
       this.editData.bio = this.user().bio || '';
@@ -48,9 +71,27 @@ export class ProfileComponent implements OnInit {
   }
 
   loadLeaderboard() {
-    this.authService.getLeaderboard(5).subscribe(data => {
+    this.authService.getLeaderboard(5, this.selectedLeaderboardInstrument()).subscribe(data => {
       this.leaderboard.set(data);
     });
+  }
+
+  changeLeaderboardInstrument(instr: string) {
+    this.selectedLeaderboardInstrument.set(instr);
+    this.loadLeaderboard();
+  }
+
+  getInstrumentStatsArray() {
+    const stats = this.user()?.instrumentStats;
+    if (!stats) return [];
+    return Object.keys(stats).map(key => ({
+      id: key,
+      name: this.instruments.find(i => i.id === key)?.name || key,
+      icon: this.instruments.find(i => i.id === key)?.icon || '🎵',
+      xp: stats[key].xp,
+      level: stats[key].level,
+      badges: (stats[key].badges || []).map((bId: string) => this.badgeDefinitions[bId]).filter((b: any) => !!b)
+    }));
   }
 
   toggleEdit() {

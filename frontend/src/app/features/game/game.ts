@@ -1,10 +1,12 @@
-import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, NgZone, inject, signal, HostListener } from '@angular/core';
+import { Component, ElementRef, ViewChild, AfterViewInit, OnDestroy, NgZone, inject, signal, HostListener, Input } from '@angular/core';
 import { Router, ActivatedRoute } from '@angular/router';
 import { AudioService } from '../../core/services/audio';
 import { LevelService } from '../../core/services/level';
 import { ProgressService } from '../../core/services/progress';
 import { faPause } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
+import { CommonModule, TitleCasePipe } from '@angular/common';
+import { AuthService } from '../../core/services/auth';
 
 interface ActiveNote {
   name: string;
@@ -27,11 +29,12 @@ interface Particle {
 @Component({
   selector: 'app-game',
   standalone: true,
-  imports: [FontAwesomeModule /* ... tus otros imports ... */],
+  imports: [CommonModule, FontAwesomeModule, TitleCasePipe],
   templateUrl: './game.html', 
   styleUrl: './game.css'
 })
 export class GameComponent implements AfterViewInit, OnDestroy {
+  @Input() forceMode: 'game' | 'tutorial' | null = null;
   // --- INYECCIONES ---
   private ngZone = inject(NgZone);
   public router = inject(Router);
@@ -39,9 +42,18 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   private levelService = inject(LevelService);
   public audioService = inject(AudioService);
   private progressService = inject(ProgressService);
+  public authService = inject(AuthService);
 
   @ViewChild('gameCanvas') canvasRef!: ElementRef<HTMLCanvasElement>;
   private ctx!: CanvasRenderingContext2D;
+
+  // --- TUTORIAL MODE ---
+  public isTutorialMode = signal(false);
+  public tutorialStep = signal(0);
+  public tutorialDialog = signal<string | null>(null);
+  public highlightArea = signal<number | 'strings' | 'note' | 'timer' | null>(null);
+  private isTutorialPaused = false;
+  private isAutoPlaying = false;
 
   // --- ESTADO DEL JUEGO ---
   
@@ -52,6 +64,8 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   gameState = signal<'playing'>('playing'); 
   
   isGameOver = signal(false);
+  isLevelUp = signal(false);
+  newLevel = signal(1);
   accuracy = signal(0);
   stats = signal({ perfect: 0, good: 0, late: 0, poor: 0, miss: 0 });
   currentDifficulty = signal<string>('easy');
@@ -93,6 +107,10 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   private startX = 0;
   private endX = 0;
   
+  // Instrumento actual
+  public instrument = signal<string>('ukulele');
+  public stringCount = signal<number>(4);
+  
   // Caché de gradientes
   private bgGradient!: CanvasGradient;
   
@@ -105,12 +123,32 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   private lastHitTime: number = 0;
   private attackConsumed: boolean = false;
 
-  private readonly noteDefinitions: { [key: string]: { string: number, fret: number | string } } = {
-    "C4": { string: 3, fret: 0 }, "E4": { string: 2, fret: 0 }, "A4": { string: 1, fret: 0 }, "G4": { string: 4, fret: 0 },
-    "F4": { string: 2, fret: 1 }, "D4": { string: 3, fret: 2 }, "C#4": { string: 3, fret: 1 }, "D#4": { string: 3, fret: 2 },
-    "F#4": { string: 2, fret: 2 }, "G#4": { string: 4, fret: 1 }, "A#4": { string: 4, fret: 1 }, "B4": { string: 4, fret: 4 },
-    "C5": { string: 1, fret: 3 }, "C#5": { string: 1, fret: 4 },
+  private readonly instrumentNoteDefinitions: { [key: string]: { [key: string]: { string: number, fret: number | string } } } = {
+    "ukulele": {
+      "C4": { string: 3, fret: 0 }, "E4": { string: 2, fret: 0 }, "A4": { string: 1, fret: 0 }, "G4": { string: 4, fret: 0 },
+      "F4": { string: 2, fret: 1 }, "D4": { string: 3, fret: 2 }, "C#4": { string: 3, fret: 1 }, "D#4": { string: 3, fret: 2 },
+      "F#4": { string: 2, fret: 2 }, "G#4": { string: 4, fret: 1 }, "A#4": { string: 4, fret: 1 }, "B4": { string: 4, fret: 4 },
+      "C5": { string: 1, fret: 3 }, "C#5": { string: 1, fret: 4 },
+    },
+    "guitar": {
+      "E2": { string: 6, fret: 0 }, "A2": { string: 5, fret: 0 }, "D3": { string: 4, fret: 0 }, "G3": { string: 3, fret: 0 }, "B3": { string: 2, fret: 0 }, "E4": { string: 1, fret: 0 },
+      "F2": { string: 6, fret: 1 }, "G2": { string: 6, fret: 3 }, "C3": { string: 5, fret: 3 }, "D#3": { string: 4, fret: 1 }, "E3": { string: 4, fret: 2 }, "F3": { string: 4, fret: 3 }, "A3": { string: 3, fret: 2 }, "C4": { string: 2, fret: 1 }, "D4": { string: 2, fret: 3 },
+      "G4": { string: 1, fret: 3 }, "A4": { string: 1, fret: 5 }, "B4": { string: 1, fret: 7 }
+    },
+    "violin": {
+      "G3": { string: 4, fret: 0 }, "D4": { string: 3, fret: 0 }, "A4": { string: 2, fret: 0 }, "E5": { string: 1, fret: 0 },
+      "A3": { string: 4, fret: 2 }, "B3": { string: 4, fret: 4 }, "C4": { string: 4, fret: 5 },
+      "E4": { string: 3, fret: 2 }, "F#4": { string: 3, fret: 4 }, "G4": { string: 3, fret: 5 },
+      "B4": { string: 2, fret: 2 }, "C#5": { string: 2, fret: 4 }, "D5": { string: 2, fret: 5 },
+      "F#5": { string: 1, fret: 2 }, "G#5": { string: 1, fret: 4 }, "A5": { string: 1, fret: 5 }
+    }
   };
+
+  private get noteDefinitions() {
+    const instr = this.instrument();
+    if (instr.startsWith('guitar')) return this.instrumentNoteDefinitions['guitar'];
+    return this.instrumentNoteDefinitions[instr] || this.instrumentNoteDefinitions['ukulele'];
+  }
 
   ngAfterViewInit() {
     const mode = this.route.snapshot.queryParamMap.get('mode');
@@ -131,21 +169,117 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     });
 
     const id = this.route.snapshot.paramMap.get('id');
-    if (id && id !== '0') {
+    const isTutorial = this.forceMode === 'tutorial' || this.route.snapshot.queryParamMap.get('tutorial') === 'true';
+
+    if (isTutorial) {
+      this.setupTutorial();
+    } else if (id && id !== '0') {
       this.currentLevelId = Number(id);
       this.levelService.getLevelById(Number(id)).subscribe({
         next: (level) => {
           this.currentDifficulty.set(level.difficulty); 
+          this.instrument.set(level.instrument || 'ukulele');
+          const isGuitar = this.instrument().startsWith('guitar');
+          this.stringCount.set(isGuitar ? 6 : 4);
+          this.neckHeight = isGuitar ? 250 : 190;
+          this.audioService.setInstrument(this.instrument());
+
           const trackData = typeof level.track_data === 'string' ? JSON.parse(level.track_data) : level.track_data;
           this.iniciarCancionReal(trackData);
-          this.startGame(); // Iniciar directamente
+          this.startGame(); 
         },
         error: (err) => console.error("Error al cargar la canción", err)
       });
     } else if (id === '0') {
-      // Ya no necesitamos manejar id 0 aquí, se encarga el componente Tuner
       this.router.navigate(['/tuner']);
     }
+  }
+
+  setupTutorial() {
+    this.isTutorialMode.set(true);
+    this.instrument.set('ukulele');
+    this.stringCount.set(4);
+    this.neckHeight = 190;
+    this.audioService.setInstrument('ukulele');
+    this.isTutorialPaused = true;
+    this.isAutoPlaying = false;
+
+    // Track for tutorial demonstration and then player test
+    // Demonstration notes: Spawn from -2000
+    // Player notes: Spawn from 8000
+    const tutorialTrack = [
+      // Demo notes
+      { time: -2000, string: 4, fret: 0 }, // G
+      { time: -1500, string: 3, fret: 0 }, // C
+      { time: -1000, string: 2, fret: 0 }, // E
+      { time: -500, string: 1, fret: 0 }, // A
+      // Player notes
+      { time: 10000, string: 4, fret: 0 }, 
+      { time: 11500, string: 3, fret: 0 }, 
+      { time: 13000, string: 2, fret: 0 }, 
+      { time: 14500, string: 1, fret: 0 }, 
+    ];
+
+    this.iniciarCancionReal(tutorialTrack);
+    this.startGame();
+    this.runTutorialStep(1);
+  }
+
+  runTutorialStep(step: number) {
+    this.tutorialStep.set(step);
+    this.isTutorialPaused = true;
+    this.isAutoPlaying = false;
+    this.highlightArea.set(null);
+
+    switch (step) {
+      case 1:
+        this.tutorialDialog.set("¡Bienvenido a Banana Song! Este es tu ukelele.");
+        break;
+      case 2:
+        this.tutorialDialog.set("Tiene 4 cuerdas. La de hasta abajo (más cercana a ti) es SOL (G)...");
+        this.highlightArea.set(4); // 4 = bottom string (G)
+        break;
+      case 3:
+        this.tutorialDialog.set("...arriba de esa está DO (C)...");
+        this.highlightArea.set(3); // 3 = C
+        break;
+      case 4:
+        this.tutorialDialog.set("...luego sigue MI (E)...");
+        this.highlightArea.set(2); // 2 = E
+        break;
+      case 5:
+        this.tutorialDialog.set("...y la de hasta arriba es LA (A).");
+        this.highlightArea.set(1); // 1 = top string (A)
+        break;
+      case 6:
+        this.tutorialDialog.set("Estas son las notas. El número indica en qué traste debes poner tu dedo.");
+        this.highlightArea.set('note');
+        // Let time run a bit to show notes then pause
+        this.isTutorialPaused = false;
+        setTimeout(() => { this.isTutorialPaused = true; }, 3500); 
+        break;
+      case 7:
+        this.tutorialDialog.set("Cuando el círculo azul llegue a la nota, debes tocarla. Mira cómo se hace:");
+        this.highlightArea.set('timer');
+        break;
+      case 8:
+        this.tutorialDialog.set(null); // Hide dialog
+        this.isTutorialPaused = false;
+        this.isAutoPlaying = true;
+        this.speedMultiplier = 2.5; // Acelerar la demostración para que sea dinámica
+        // La progresión al paso 9 ocurrirá automáticamente en updateLogic cuando se acierten las 4 notas.
+        break;
+      case 9:
+        this.speedMultiplier = 1; // Volver a la velocidad normal para el jugador
+        this.tutorialDialog.set("¡Ahora es tu turno! Toca las 4 cuerdas al aire cuando lleguen.");
+        this.isTutorialPaused = false;
+        this.isAutoPlaying = false;
+        break;
+    }
+  }
+
+  nextTutorialStep() {
+    this.runTutorialStep(this.tutorialStep() + 1);
   }
 
   ngOnDestroy() {
@@ -256,7 +390,12 @@ togglePause() {
     }
 
 
-    // --- CONTROL DE REBOBINADO ---
+    // --- CONTROL DE REBOBINADO Y TUTORIAL ---
+    if (this.isTutorialMode() && this.isTutorialPaused) {
+      // En modo tutorial pausado, no avanzamos el tiempo
+      return;
+    }
+
     if (this.isRewinding) {
       if (this.gameTime <= this.targetRewindTime) {
         this.isRewinding = false;
@@ -314,7 +453,7 @@ togglePause() {
 
       // 🔥 FIX DEL INDICADOR: Interpolación en updateLogic para compensar la velocidad
       const neckY = this.canvasRef.nativeElement.height * 0.4;
-      const targetY = neckY + targetNote.string * (this.neckHeight / 5);
+      const targetY = neckY + targetNote.string * (this.neckHeight / (this.stringCount() + 1));
       
       if (this.indicatorX < 0) {
         this.indicatorX = targetNote.x;
@@ -325,10 +464,19 @@ togglePause() {
         this.indicatorY += (targetY - this.indicatorY) * 0.3;
       } 
 
-      if (this.isPracticeMode()) {
+      if (this.isPracticeMode() || (this.isTutorialMode() && this.isAutoPlaying)) {
         if (targetNote.x <= this.hitLineX) {
           this.marcarNota(targetNote, 'perfect', 20);
           this.audioService.playNoteSound(targetNote.name);
+          
+          if (this.isTutorialMode() && this.tutorialStep() === 8) {
+            // Cuando la demostración termine de tocar las 4 notas
+            if (this.stats().perfect >= 4 && this.isAutoPlaying) {
+              this.isAutoPlaying = false; // Detener auto-play instantáneamente
+              this.speedMultiplier = 1; // Volver a la velocidad normal INMEDIATAMENTE
+              setTimeout(() => { this.nextTutorialStep(); }, 1500);
+            }
+          }
         }
       } 
       else {
@@ -415,7 +563,7 @@ togglePause() {
     
     // Lanzar partículas
     if (status === 'perfect' || status === 'good' || status === 'poor') {
-      const stringSpacing = this.neckHeight / 5;
+      const stringSpacing = this.neckHeight / (this.stringCount() + 1);
       const neckY = this.canvasRef.nativeElement.height * 0.4;
       const stringY = neckY + note.string * stringSpacing;
       
@@ -459,6 +607,17 @@ togglePause() {
 
   private finalizarJuego() {
     this.ngZone.run(() => {
+      this.audioService.stopRecording();
+
+      if (this.isTutorialMode()) {
+        this.tutorialDialog.set("¡Felicidades, terminaste el tutorial!");
+        this.highlightArea.set(null);
+        setTimeout(() => {
+          this.router.navigate(['/menu'], { queryParams: { tutorial: 'true' } });
+        }, 3000);
+        return;
+      }
+
       this.isGameOver.set(true);
       const st = this.stats();
       const totalTocadas = st.perfect + st.good + st.late + st.poor + st.miss;
@@ -469,8 +628,6 @@ togglePause() {
         acc = (puntosPrecision / totalTocadas) * 100;
       }
       this.accuracy.set(Math.round(acc));
-      
-      this.audioService.stopRecording();
 
       // Guardar progreso si no estamos en práctica
       if (!this.isPracticeMode() && this.currentLevelId !== null) {
@@ -479,6 +636,8 @@ togglePause() {
         else if (acc > 70) stars = 2;
         else if (acc > 40) stars = 1;
 
+        const oldLevel = this.authService.currentUser()?.instrumentStats?.[this.instrument()]?.level || 1;
+
         this.progressService.saveProgress({
           levelId: this.currentLevelId,
           score: this.score(),
@@ -486,11 +645,31 @@ togglePause() {
           maxCombo: this.maxCombo,
           accuracy: Math.round(acc)
         }).subscribe({
-          next: () => console.log('Progreso guardado correctamente.'),
+          next: (res) => {
+            console.log('Progreso guardado correctamente.');
+            const newLevel = res.userStats?.instrumentStats?.[this.instrument()]?.level || 1;
+            if (newLevel > oldLevel) {
+              this.newLevel.set(newLevel);
+              this.isLevelUp.set(true);
+              this.spawnLevelUpConfetti();
+            }
+          },
           error: (err) => console.error('Error al guardar progreso:', err)
         });
       }
     });
+  }
+
+  private spawnLevelUpConfetti() {
+    // Generar muchas partículas de colores
+    const colors = ['#f1c40f', '#e74c3c', '#3498db', '#2ecc71', '#9b59b6'];
+    for (let i = 0; i < 100; i++) {
+      this.spawnParticles(
+        Math.random() * this.canvasRef.nativeElement.width,
+        Math.random() * this.canvasRef.nativeElement.height,
+        colors[Math.floor(Math.random() * colors.length)]
+      );
+    }
   }
 
   // --- DIBUJO ---
@@ -499,10 +678,10 @@ togglePause() {
     this.ctx.clearRect(0, 0, canvas.width, canvas.height);
     
     this.drawBackground(canvas);
-    this.drawUkuleleNeck(canvas);
+    this.drawInstrumentNeck(canvas);
     
     this.drawMovingLines(); 
-    this.drawUkuleleStrings(canvas);
+    this.drawStrings(canvas);
     this.drawTargetIndicator(canvas); 
     this.drawNotes();
     this.drawParticles();
@@ -517,23 +696,68 @@ togglePause() {
     }
   }
 
-  private drawUkuleleNeck(canvas: HTMLCanvasElement) {
-    this.ctx.fillStyle = "#666"; 
+  private drawInstrumentNeck(canvas: HTMLCanvasElement) {
+    const instr = this.instrument();
+    let neckColor = "#666";
+    let fretboardColor = "#333";
+
+    if (instr === 'guitar_acoustic') {
+      neckColor = "#8B4513"; // Saddle Brown
+      fretboardColor = "#5D2906"; 
+    } else if (instr === 'guitar_electric') {
+      neckColor = "#1a1a2e"; // Dark Blue/Black
+      fretboardColor = "#0f3460";
+    } else if (instr === 'violin') {
+      neckColor = "#4a2c2a"; // Rosewood
+      fretboardColor = "#1a1110";
+    }
+
+    this.ctx.fillStyle = neckColor; 
     this.ctx.fillRect(0, canvas.height * 0.4, canvas.width, this.neckHeight); 
     
-    this.ctx.fillStyle = "#333"; 
+    this.ctx.fillStyle = fretboardColor; 
     this.ctx.fillRect(0, canvas.height * 0.4 + this.neckHeight, canvas.width, 20);
   }
 
-  private drawUkuleleStrings(canvas: HTMLCanvasElement) {
-    const stringSpacing = this.neckHeight / 5; 
+  private drawStrings(canvas: HTMLCanvasElement) {
+    const strings = this.stringCount();
+    const stringSpacing = this.neckHeight / (strings + 1);
     const neckY = canvas.height * 0.4;
-    const stringWidths = [2, 2.5, 3, 2];
+    const instr = this.instrument();
 
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < strings; i++) {
       const y = neckY + (i + 1) * stringSpacing;
       this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(canvas.width, y);
-      this.ctx.strokeStyle = i < 2 ? "#FFF" : "#F3BF23"; this.ctx.lineWidth = stringWidths[i]; this.ctx.stroke();
+      
+      // Colores de cuerdas
+      if (instr === 'guitar_electric') {
+        this.ctx.strokeStyle = "#C0C0C0"; // Nickel/Steel
+        this.ctx.lineWidth = 1 + (i * 0.5); // Thickness varies slightly
+      } else if (instr === 'guitar_acoustic') {
+        this.ctx.strokeStyle = i < 3 ? "#E8E8E8" : "#CD7F32"; // Steel and Bronze
+        this.ctx.lineWidth = 1.2 + (i * 0.4);
+      } else if (instr === 'violin') {
+        this.ctx.strokeStyle = "#DDD"; // Gut/Steel strings
+        this.ctx.lineWidth = 1.5;
+      } else {
+        this.ctx.strokeStyle = i < 2 ? "#FFF" : "#F3BF23"; // Ukulele
+        this.ctx.lineWidth = 2;
+      }
+      
+      // Highlight logic
+      const highlight = this.highlightArea();
+      if (typeof highlight === 'number') {
+        if (highlight !== i + 1) {
+          this.ctx.globalAlpha = 0.2; 
+        } else {
+          this.ctx.shadowColor = "#FFF";
+          this.ctx.shadowBlur = 10;
+        }
+      }
+
+      this.ctx.stroke();
+      this.ctx.globalAlpha = 1.0;
+      this.ctx.shadowBlur = 0;
     }
   }
 
@@ -564,8 +788,12 @@ togglePause() {
     if (!this.currentTargetNote || this.isPracticeMode()) return;
 
     const neckY = canvas.height * 0.4;
+    const stringSpacing = this.neckHeight / (this.stringCount() + 1);
     const noteRadius = 14;
     const distance = this.currentTargetNote.x - this.hitLineX;
+    
+    // 🔥 FIX DEL INDICADOR: Y dinámica basada en el número de cuerdas
+    const targetY = neckY + this.currentTargetNote.string * stringSpacing;
     
     // Limit drawing to when the note is approaching or just passed
     if (distance < -60 || distance > 250) return;
@@ -619,7 +847,7 @@ togglePause() {
 
   private drawNotes() {
     const neckY = this.canvasRef.nativeElement.height * 0.4;
-    const stringSpacing = this.neckHeight / 5; 
+    const stringSpacing = this.neckHeight / (this.stringCount() + 1); 
 
     for (const note of this.activeNotes) {
       const stringY = neckY + note.string * stringSpacing;

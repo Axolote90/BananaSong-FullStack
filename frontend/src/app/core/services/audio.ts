@@ -22,35 +22,50 @@ export class AudioService {
   private lastRms = 0;
   private attackThreshold = 2.2; // Multiplicador más estricto para detectar el rasgueo
 
-  // Frecuencias exactas (A4 = 440 Hz)
+  // Frecuencias extendidas para múltiples instrumentos (E2 a E6 aprox)
   private readonly noteFrequencies: { [key: string]: number } = {
-    "C4": 261.63, "C#4": 277.18, "D4": 293.66, "D#4": 311.13,
-    "E4": 329.63, "F4": 349.23, "F#4": 369.99, "G4": 392.00,
-    "G#4": 415.30, "A4": 440.00, "A#4": 466.16, "B4": 493.88,
-    "C5": 523.25, "C#5": 554.37,
+    "E2": 82.41, "F2": 87.31, "F#2": 92.50, "G2": 98.00, "G#2": 103.83, "A2": 110.00, "A#2": 116.54, "B2": 123.47,
+    "C3": 130.81, "C#3": 138.59, "D3": 146.83, "D#3": 155.56, "E3": 164.81, "F3": 174.61, "F#3": 185.00, "G3": 196.00, "G#3": 207.65, "A3": 220.00, "A#3": 233.08, "B3": 246.94,
+    "C4": 261.63, "C#4": 277.18, "D4": 293.66, "D#4": 311.13, "E4": 329.63, "F4": 349.23, "F#4": 369.99, "G4": 392.00, "G#4": 415.30, "A4": 440.00, "A#4": 466.16, "B4": 493.88,
+    "C5": 523.25, "C#5": 554.37, "D5": 587.33, "D#5": 622.25, "E5": 659.25, "F5": 698.46, "F#5": 739.99, "G5": 783.99, "G#5": 830.61, "A5": 880.00, "A#5": 932.33, "B5": 987.77,
+    "C6": 1046.50
   };
 
-  // Cuerdas estándar de Ukelele
-  private readonly tuningStrings = ["G4", "C4", "E4", "A4"];
-
-  // Nombres de archivos esperados por el usuario
-  private readonly baseAudioFiles: { [key: string]: string } = {
-    "G4": "g4.mp3",
-    "C4": "c4.mp3",
-    "E4": "e4.mp3",
-    "A4": "a4.mp3"
+  // Configuraciones de cuerdas por instrumento
+  private readonly instrumentConfigs: { [key: string]: { strings: string[], assets: string } } = {
+    "ukulele": { strings: ["G4", "C4", "E4", "A4"], assets: "ukulele" },
+    "guitar": { strings: ["E2", "A2", "D3", "G3", "B3", "E4"], assets: "guitar" },
+    "guitar_acoustic": { strings: ["E2", "A2", "D3", "G3", "B3", "E4"], assets: "guitar_acoustic" },
+    "guitar_electric": { strings: ["E2", "A2", "D3", "G3", "B3", "E4"], assets: "guitar_electric" },
+    "violin": { strings: ["G3", "D4", "A4", "E5"], assets: "violin" }
   };
 
-  constructor() {
-    // Inicializamos un ÚNICO motor de audio global para todo el servicio
-    this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-    this.loadRealUkuleleSounds();
+  private currentInstrument = "ukulele";
+
+  // Cuerdas actuales basadas en el instrumento seleccionado
+  public get tuningStrings() {
+    return this.instrumentConfigs[this.currentInstrument].strings;
   }
 
-  // --- NUEVO: CARGAR AUDIOS REALES (SISTEMA SAMPLER) ---
-  private async loadRealUkuleleSounds() {
-    for (const [noteName, fileName] of Object.entries(this.baseAudioFiles)) {
-      await this.loadNote(noteName, `/assets/sounds/ukulele/${fileName}`);
+  constructor() {
+    this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    this.loadInstrumentSounds();
+  }
+
+  // --- NUEVO: SOPORTE MULTI-INSTRUMENTO ---
+  public setInstrument(instrument: string) {
+    if (this.instrumentConfigs[instrument]) {
+      this.currentInstrument = instrument;
+      this.noteBuffers.clear();
+      this.loadInstrumentSounds();
+    }
+  }
+
+  private async loadInstrumentSounds() {
+    const config = this.instrumentConfigs[this.currentInstrument];
+    for (const noteName of config.strings) {
+      const fileName = `${noteName.toLowerCase()}.mp3`;
+      await this.loadNote(noteName, `/assets/sounds/${config.assets}/${fileName}`);
     }
   }
 
@@ -158,7 +173,7 @@ export class AudioService {
 
           const dominantFrequency = this.autoCorrelate(buffer, this.audioContext.sampleRate, rms);
 
-          if (dominantFrequency === -1 || dominantFrequency < 100 || dominantFrequency > 1000) {
+          if (dominantFrequency === -1 || dominantFrequency < 70 || dominantFrequency > 2000) {
             this.currentNote.set(null);
             this.tuningStatus.set(null);
             return;

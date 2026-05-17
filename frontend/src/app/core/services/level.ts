@@ -15,8 +15,12 @@ export class LevelService {
   private apiUrl = API_CONFIG.levels;
 
   // Función para pedir todas las canciones
-  getLevels(): Observable<Level[]> {
-    return this.http.get<Level[]>(this.apiUrl);
+  getLevels(instrument?: string): Observable<Level[]> {
+    let url = this.apiUrl;
+    if (instrument) {
+      url += `?instrument=${instrument}`;
+    }
+    return this.http.get<Level[]>(url);
   }
   // Pedir una sola canción con su partitura (track_data)
   getLevelById(id: number): Observable<Level> {

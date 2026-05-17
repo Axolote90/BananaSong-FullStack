@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LevelService } from '../../core/services/level';
 import { Level } from '../../core/models/level';
@@ -7,7 +7,6 @@ import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { faPlay, faEye, faGear, faUser, faFire, faHeart, faMusic } from '@fortawesome/free-solid-svg-icons'; 
 import { AuthService } from '../../core/services/auth';
 
-import { RouterModule } from '@angular/router';
 
 @Component({
   selector: 'app-game-menu',
@@ -38,14 +37,79 @@ export class GameMenuComponent implements OnInit {
   isLoading = signal(true);
   errorMessage = signal('');
 
+  // --- TUTORIAL ESTADO ---
+  isTutorialMode = signal(false);
+  tutorialStep = signal(1);
+  tutorialDialog = signal<string | null>(null);
+
+  // --- INSTRUMENTO SELECCIONADO ---
+  selectedInstrument = signal<string>('ukulele');
+  
+  availableInstruments = [
+    { id: 'ukulele', name: 'Ukelele', icon: '🎸' },
+    { id: 'guitar_acoustic', name: 'Acústica', icon: '🎵' },
+    { id: 'guitar_electric', name: 'Eléctrica', icon: '⚡' },
+    { id: 'violin', name: 'Violín', icon: '🎻' }
+  ];
+
   // --- CICLO DE VIDA ---
+  private route = inject(ActivatedRoute);
+
   ngOnInit() {
+    // Inicializar con el instrumento del usuario
+    const userInstrument = this.user()?.targetInstrument || 'ukulele';
+    this.selectedInstrument.set(userInstrument);
+    
     this.cargarCanciones();
+    const isTutorial = this.route.snapshot.queryParamMap.get('tutorial') === 'true';
+    if (isTutorial) {
+      this.iniciarTutorialMenu();
+    }
+
+    // Refrescar perfil desde el servidor para sincronizar XP/vidas/racha
+    this.authService.getProfile().subscribe();
+  }
+
+  iniciarTutorialMenu() {
+    this.isTutorialMode.set(true);
+    this.runTutorialStep(1);
+  }
+
+  runTutorialStep(step: number) {
+    this.tutorialStep.set(step);
+    switch (step) {
+      case 1:
+        this.tutorialDialog.set("¡Bienvenido al Menú Principal! Aquí encontrarás todas las canciones disponibles.");
+        break;
+      case 2:
+        this.tutorialDialog.set("Cada tarjeta representa una canción. Puedes ver su dificultad por los colores (verde, amarillo, rojo).");
+        break;
+      case 3:
+        this.tutorialDialog.set("Tienes el botón '¡Jugar!' para practicar tocando tu instrumento real con el micrófono.");
+        break;
+      case 4:
+        this.tutorialDialog.set("También tienes el botón de 'Ojo' para el modo Práctica Auto-Play, donde el juego toca solo para que escuches y aprendas.");
+        break;
+      case 5:
+        this.tutorialDialog.set("Arriba tienes acceso rápido al Afinador y a tu Perfil. ¡Explora y diviértete!");
+        break;
+      case 6:
+        this.tutorialDialog.set(null);
+        this.isTutorialMode.set(false);
+        // Remove query param to prevent repeating tutorial on refresh
+        this.router.navigate([], { relativeTo: this.route, queryParams: { tutorial: null }, queryParamsHandling: 'merge' });
+        break;
+    }
+  }
+
+  nextTutorialStep() {
+    this.runTutorialStep(this.tutorialStep() + 1);
   }
 
   // --- FUNCIONES PRINCIPALES ---
   cargarCanciones() {
-    this.levelService.getLevels().subscribe({
+    this.isLoading.set(true);
+    this.levelService.getLevels(this.selectedInstrument()).subscribe({
       next: (data: Level[]) => {
         this.levels.set(data);       
         this.isLoading.set(false);   
@@ -56,6 +120,28 @@ export class GameMenuComponent implements OnInit {
         this.isLoading.set(false);
       }
     });
+  }
+
+  cambiarInstrumento(id: string) {
+    if (this.selectedInstrument() === id) return;
+    
+    this.selectedInstrument.set(id);
+    this.cargarCanciones();
+    
+    // Opcional: Persistir en el backend
+    this.authService.updateOnboarding({ targetInstrument: id }).subscribe();
+  }
+
+  getInstrumentXP(): number {
+    const stats = this.user()?.instrumentStats;
+    const instr = this.selectedInstrument();
+    return stats && stats[instr] ? stats[instr].xp : 0;
+  }
+
+  getInstrumentLevel(): number {
+    const stats = this.user()?.instrumentStats;
+    const instr = this.selectedInstrument();
+    return stats && stats[instr] ? stats[instr].level : 1;
   }
 
   seleccionarNivel(id: number, mode: 'play' | 'auto') {

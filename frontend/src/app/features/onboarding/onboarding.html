@@ -1,0 +1,115 @@
+<div class="metaballs-bg">
+  <div class="blob blob1"></div>
+  <div class="blob blob2"></div>
+  <div class="blob blob3"></div>
+  <div class="blob blob4"></div>
+  <div class="blob blob5"></div>
+</div>
+
+<div class="onboarding-wrapper">
+  
+  <!-- Pasos -->
+  <div class="step-indicator">
+    <div class="dot" [class.active]="currentStep() >= 1"></div>
+    <div class="line" [class.active]="currentStep() >= 2"></div>
+    <div class="dot" [class.active]="currentStep() >= 2"></div>
+    <div class="line" [class.active]="currentStep() >= 3"></div>
+    <div class="dot" [class.active]="currentStep() >= 3"></div>
+    <div class="line" [class.active]="currentStep() >= 4"></div>
+    <div class="dot" [class.active]="currentStep() >= 4"></div>
+  </div>
+
+  <div class="content-container">
+    
+    <!-- STEP 1: Creación de Cuenta -->
+    @if (currentStep() === 1) {
+      <div class="step-content animate-in">
+        <h1>¡Crea tu cuenta gratis!</h1>
+        <p class="subtitle">Únete a la comunidad de músicos más grande del mundo.</p>
+        
+        <div class="auth-form">
+          <div class="form-group">
+            <input type="text" [(ngModel)]="username" placeholder="Nombre de usuario" class="bento-input">
+          </div>
+          <div class="form-group">
+            <input type="email" [(ngModel)]="email" placeholder="Correo electrónico" class="bento-input">
+          </div>
+          <div class="form-group">
+            <input type="password" [(ngModel)]="password" placeholder="Contraseña" class="bento-input">
+          </div>
+          
+          <div class="error-msg" *ngIf="errorMessage()">{{ errorMessage() }}</div>
+          
+          <button class="btn-primary-onboarding" (click)="register()" [disabled]="isLoading()">
+            {{ isLoading() ? 'Registrando...' : 'Siguiente' }}
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 2: Confirmación de Correo -->
+    @if (currentStep() === 2) {
+      <div class="step-content animate-in text-center">
+        <div class="success-icon">📧</div>
+        <h1>¡Revisa tu correo!</h1>
+        <p class="subtitle">Te hemos enviado un enlace de confirmación a <strong>{{ email }}</strong>.</p>
+        
+        <div class="mock-confirm-box">
+          <p>Para propósitos de prueba, haz clic abajo para simular la confirmación:</p>
+          <button class="btn-confirm-mock" (click)='confirmarSimulada()'>Confirmar Cuenta</button>
+        </div>
+      </div>
+    }
+
+    <!-- STEP 3: ¿Qué quieres aprender? -->
+    @if (currentStep() === 3) {
+      <div class="step-content animate-in">
+        <h1>¿Qué quieres aprender a tocar hoy?</h1>
+        <p class="subtitle">Elige tu primer instrumento. Podrás añadir más después.</p>
+        
+        <div class="instrument-grid">
+          @for (instr of instruments; track instr.id) {
+            <div class="instrument-card" (click)="selectTarget(instr.id)" [class.selected]="selectedTarget() === instr.id">
+              <div class="icon">{{ instr.icon }}</div>
+              <h3>{{ instr.name }}</h3>
+              <p>{{ instr.description }}</p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- STEP 4: Nivel y conocidos -->
+    @if (currentStep() === 4) {
+      <div class="step-content animate-in">
+        <h1>¿Cuál es tu nivel de experiencia?</h1>
+        <p class="subtitle">Personalizaremos tu camino de aprendizaje.</p>
+        
+        <div class="level-list">
+          <div class="level-card" (click)="selectLevel('beginner')">
+            <div class="level-icon">🌱</div>
+            <div class="level-info">
+              <h3>Principiante</h3>
+              <p>Nunca he tocado o estoy empezando.</p>
+            </div>
+          </div>
+          <div class="level-card" (click)="selectLevel('intermediate')">
+            <div class="level-icon">🌿</div>
+            <div class="level-info">
+              <h3>Intermedio</h3>
+              <p>Conozco los acordes básicos y escalas.</p>
+            </div>
+          </div>
+          <div class="level-card" (click)="selectLevel('advanced')">
+            <div class="level-icon">🌳</div>
+            <div class="level-info">
+              <h3>Avanzado</h3>
+              <p>Toco con fluidez y entiendo teoría musical.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+  </div>
+</div>

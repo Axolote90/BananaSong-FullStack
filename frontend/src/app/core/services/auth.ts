@@ -54,6 +54,15 @@ export class AuthService {
     this.currentUser.set(null);
   }
 
+  updateOnboarding(data: any): Observable<any> {
+    return this.http.put(`${this.apiUrl}/onboarding`, data).pipe(
+      tap((res: any) => {
+        const updatedUser = { ...this.currentUser(), ...res.user };
+        this.setSession(updatedUser);
+      })
+    );
+  }
+
   updateProfile(data: any): Observable<any> {
     const token = this.currentUser()?.token;
     return this.http.put(`${this.usersUrl}/profile`, data, {
@@ -68,7 +77,23 @@ export class AuthService {
     );
   }
 
-  getLeaderboard(limit: number = 10): Observable<any[]> {
-    return this.http.get<any[]>(`${this.usersUrl}/leaderboard?limit=${limit}`);
+  getLeaderboard(limit: number = 10, instrument?: string): Observable<any[]> {
+    let url = `${this.usersUrl}/leaderboard?limit=${limit}`;
+    if (instrument) url += `&instrument=${instrument}`;
+    return this.http.get<any[]>(url);
+  }
+
+  getProfile(): Observable<any> {
+    const token = this.currentUser()?.token;
+    return this.http.get<any>(`${this.apiUrl}/profile`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).pipe(
+      tap((res: any) => {
+        if (res.user) {
+          const updatedUser = { ...this.currentUser(), ...res.user };
+          this.setSession(updatedUser);
+        }
+      })
+    );
   }
 }

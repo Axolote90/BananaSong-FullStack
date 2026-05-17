@@ -1,5 +1,5 @@
-const User = require('../models/User');
-const { Op } = require('sequelize');
+const { User, UserInstrument } = require('../models');
+const { Op, literal } = require('sequelize');
 
 exports.updateProfile = async (req, res) => {
     try {
@@ -11,12 +11,18 @@ exports.updateProfile = async (req, res) => {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
 
-        // Actualizar campos si se proporcionan
         if (username) user.username = username;
         if (bio !== undefined) user.bio = bio;
         if (profile) user.profile = profile;
 
         await user.save();
+
+        // Obtener stats por instrumento para el perfil
+        const allStats = await UserInstrument.findAll({ where: { userId } });
+        const statsMap = {};
+        allStats.forEach(s => {
+            statsMap[s.instrument] = { xp: s.xp, level: s.level, badges: s.badges };
+        });
 
         res.json({
             message: "Perfil actualizado con éxito",
@@ -25,6 +31,7 @@ exports.updateProfile = async (req, res) => {
                 username: user.username,
                 email: user.email,
                 xp: user.xp,
+                instrumentStats: statsMap,
                 streak: user.streak,
                 hearts: user.hearts,
                 profile: user.imgProfile ? user.imgProfile.toString() : null,
@@ -40,20 +47,26 @@ exports.updateProfile = async (req, res) => {
 exports.getLeaderboard = async (req, res) => {
     try {
         const limit = parseInt(req.query.limit) || 10;
+        const instrument = req.query.instrument || 'ukulele';
 
-        const topUsers = await User.findAll({
-            attributes: ['id', 'username', 'xp', 'imgProfile', 'bio'],
+        // Buscar en la tabla UserInstrument y unir con User
+        const topInstruments = await UserInstrument.findAll({
+            where: { instrument },
+            include: [{
+                model: User,
+                attributes: ['username', 'imgProfile', 'bio']
+            }],
             order: [['xp', 'DESC']],
             limit: limit
         });
 
-        // Mapear para que el frontend reciba 'profile' como string
-        const result = topUsers.map(u => ({
-            id: u.id,
-            username: u.username,
-            xp: u.xp,
-            bio: u.bio,
-            profile: u.imgProfile ? u.imgProfile.toString() : null
+        const result = topInstruments.map(ui => ({
+            id: ui.userId,
+            username: ui.User ? ui.User.username : 'Usuario',
+            xp: ui.xp,
+            level: ui.level,
+            bio: ui.User ? ui.User.bio : null,
+            profile: ui.User && ui.User.imgProfile ? ui.User.imgProfile.toString() : null
         }));
 
         res.json(result);

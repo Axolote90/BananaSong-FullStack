@@ -8,12 +8,23 @@
 <div class="bento-container" *ngIf="user()">
   <!-- Encabezado -->
   <div class="bento-header">
-    <h1>Banana Song <span class="badge">Ukelele</span></h1>
+    <h1>Banana Song <span class="badge">{{ selectedInstrument() | titlecase }}</span></h1>
+  </div>
+
+  <!-- Selector de Instrumentos -->
+  <div class="instrument-selector-bar">
+    @for (instr of availableInstruments; track instr.id) {
+      <button class="instr-tab" 
+              [class.active]="selectedInstrument() === instr.id"
+              (click)="cambiarInstrumento(instr.id)">
+        <span class="instr-icon">{{ instr.icon }}</span>
+        <span class="instr-name">{{ instr.name }}</span>
+      </button>
+    }
   </div>
 
   <div class="bento-grid">
     
-    <!-- Perfil -->
     <!-- Perfil -->
     <div class="bento-item profile-card" (click)="irAlPerfil()" style="cursor: pointer;">
       <div class="profile-header">
@@ -23,11 +34,11 @@
           } @else {
             <img src="assets/img/banana.jpg" alt="Avatar" class="avatar-img">
           }
-          <div class="xp-badge">{{ user()?.xp }} XP</div>
+          <div class="xp-badge">{{ getInstrumentXP() }} XP</div>
         </div>
         <div class="profile-info">
           <h3>¡Hola, {{ user()?.username }}!</h3>
-          <span class="rank-text">Ukelelista Principiante</span>
+          <span class="rank-text">Nivel {{ getInstrumentLevel() }} en {{ selectedInstrument() }}</span>
         </div>
       </div>
     </div>
@@ -102,3 +113,13 @@
 
   </div>
 </div>
+
+<!-- TUTORIAL MENU OVERLAY -->
+@if (isTutorialMode() && tutorialDialog()) {
+  <div class="tutorial-bubble-container">
+    <div class="tutorial-bubble">
+      <p>{{ tutorialDialog() }}</p>
+      <button class="btn-tutorial" (click)="nextTutorialStep()">Entendido</button>
+    </div>
+  </div>
+}

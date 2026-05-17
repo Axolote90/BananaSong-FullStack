@@ -3,5 +3,6 @@ export interface Level {
   title: string;
   difficulty: 'easy' | 'medium' | 'hard';
   bpm: number;
-  track_data?: any; // Lo dejamos opcional por ahora
+  instrument?: string; // Nuevo campo para multi-instrumento
+  track_data?: any;
 }

@@ -248,7 +248,104 @@
 .name { flex: 1; font-weight: 600; }
 .xp { font-weight: 800; color: #f1c40f; }
 
+.xp-group {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.xp-group .lvl {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.5);
+  font-weight: 500;
+}
+
 .text-gold { color: #f1c40f; }
+
+/* Instrument XP List */
+.instrument-xp-list {
+  width: 100%;
+  margin-top: 30px;
+  text-align: left;
+}
+
+.instrument-xp-list h4 {
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.instr-xp-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 12px 20px;
+  border-radius: 15px;
+  margin-bottom: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.instr-xp-item .icon { font-size: 1.2rem; }
+.instr-xp-item .info { flex: 1; display: flex; flex-direction: column; }
+.instr-xp-item .name { font-weight: 600; font-size: 0.95rem; }
+.instr-xp-item .level { font-size: 0.75rem; color: rgba(255, 255, 255, 0.5); }
+.instr-xp-item .xp { font-weight: 800; color: #f1c40f; }
+
+.badges-row {
+  display: flex;
+  gap: 5px;
+  margin: 0 15px;
+}
+
+.badge-mini {
+  font-size: 1.1rem;
+  cursor: help;
+  transition: transform 0.2s;
+}
+
+.badge-mini:hover {
+  transform: scale(1.3) rotate(10deg);
+}
+
+/* Section Header for Leaderboard */
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.section-header h3 { margin: 0; }
+
+.mini-selector {
+  display: flex;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 4px;
+  border-radius: 12px;
+}
+
+.mini-tab {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: 0.3s;
+}
+
+.mini-tab:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.mini-tab.active { background: #f1c40f; color: #000; }
 
 /* Responsive */
 @media (max-width: 768px) {

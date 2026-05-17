@@ -3,8 +3,15 @@ const Level = require('../models/Level');
 // FUNCIÓN PARA PEDIR: Obtener todas las canciones (para la lista del menú)
 exports.getAllLevels = async (req, res) => {
     try {
+        const { instrument } = req.query;
+        let where = {};
+        if (instrument) {
+            where.instrument = instrument;
+        }
+
         const levels = await Level.findAll({
-            attributes: ['id', 'title', 'difficulty', 'bpm'] // No mandamos el JSON pesado aún
+            where: where,
+            attributes: ['id', 'title', 'difficulty', 'bpm', 'instrument'] // Añadimos instrument para que el front lo vea
         });
         res.json(levels);
     } catch (error) {

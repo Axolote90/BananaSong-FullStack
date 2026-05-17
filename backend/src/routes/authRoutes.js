@@ -12,9 +12,16 @@ const authLimiter = rateLimit({
     message: { message: 'Demasiados intentos. Por favor, inténtalo más tarde.' }
 });
 
+// Ruta para confirmar email: GET http://localhost:3000/api/auth/confirm/:token
+router.get('/confirm/:token', authController.confirmEmail);
+
+// Ruta para actualizar onboarding: PUT http://localhost:3000/api/auth/onboarding
+router.put('/onboarding', authenticateToken, authController.updateOnboarding);
+
 // Ruta para registrarse: POST http://localhost:3000/api/auth/register
 router.post('/register', authLimiter, [
     body('username').notEmpty().withMessage('Usuario es requerido').isLength({ min: 3 }).withMessage('El usuario debe tener al menos 3 caracteres'),
+    body('email').isEmail().withMessage('Correo electrónico inválido'),
     body('password').notEmpty().withMessage('Contraseña es requerida').isLength({ min: 6 }).withMessage('La contraseña debe tener al menos 6 caracteres')
 ], validateRequest, authController.register);
 

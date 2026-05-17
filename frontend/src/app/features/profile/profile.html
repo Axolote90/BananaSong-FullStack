@@ -86,18 +86,55 @@
             <span class="label">Vidas</span>
           </div>
         </div>
+
+        <div class="instrument-xp-list">
+          <h4>Progreso por Instrumento</h4>
+          @for (stat of getInstrumentStatsArray(); track stat.id) {
+            <div class="instr-xp-item">
+              <span class="icon">{{ stat.icon }}</span>
+              <div class="info">
+                <span class="name">{{ stat.name }}</span>
+                <span class="level">Nivel {{ stat.level }}</span>
+              </div>
+              <div class="badges-row">
+                @for (badge of stat.badges; track badge.name) {
+                  <span class="badge-mini" [title]="badge.name + ': ' + badge.description">
+                    {{ badge.icon }}
+                  </span>
+                }
+              </div>
+              <span class="xp">{{ stat.xp }} XP</span>
+            </div>
+          }
+        </div>
       </div>
 
       <!-- Lado Derecho: Leaderboard -->
       <div class="leaderboard-section">
-        <h3><fa-icon [icon]="faTrophy" class="text-gold"></fa-icon> Top Jugadores</h3>
+        <div class="section-header">
+          <h3><fa-icon [icon]="faTrophy" class="text-gold"></fa-icon> Ranking</h3>
+          <div class="mini-selector">
+            @for (instr of instruments; track instr.id) {
+              <button class="mini-tab" 
+                      [class.active]="selectedLeaderboardInstrument() === instr.id"
+                      (click)="changeLeaderboardInstrument(instr.id)"
+                      [title]="instr.name">
+                {{ instr.icon }}
+              </button>
+            }
+          </div>
+        </div>
+
         <div class="leaderboard-list">
           @for (player of leaderboard(); track player.id; let i = $index) {
             <div class="leaderboard-item" [class.current-user]="player.id === user()?.id">
               <span class="rank">#{{ i + 1 }}</span>
               <img [src]="getSafeProfileUrl(player.profile)" alt="Avatar" class="mini-avatar">
               <span class="name">{{ player.username }}</span>
-              <span class="xp">{{ player.xp }} XP</span>
+              <span class="xp-group">
+                <span class="xp">{{ player.xp }} XP</span>
+                <span class="lvl">Lvl {{ player.level }}</span>
+              </span>
             </div>
           }
         </div>
