@@ -1,4 +1,5 @@
 const express = require('express');
+const path = require('path');
 const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
@@ -77,6 +78,14 @@ app.use('/api/levels', levelRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/progress', progressRoutes);
 app.use('/api/users', userRoutes);
+
+// --- 5.5 SERVIR ARCHIVOS ESTÁTICOS DEL FRONTEND (ANGULAR) ---
+app.use(express.static(path.join(__dirname, '../../frontend/dist/frontend/browser')));
+
+// Cualquier ruta que no sea de la API redirige al index.html de Angular (SPA Routing)
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../../frontend/dist/frontend/browser/index.html'));
+});
 
 // --- MANEJO DE ERRORES GLOBAL ---
 const errorHandler = require('./middlewares/errorHandler');
