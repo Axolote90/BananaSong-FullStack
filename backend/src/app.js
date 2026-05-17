@@ -18,6 +18,7 @@ const userRoutes = require('./routes/userRoutes');
 
 // --- 2. CONFIGURACIÓN DEL SERVIDOR ---
 const app = express();
+app.set('trust proxy', 1); // Confiar en proxies inversos como ngrok
 const server = http.createServer(app);
 
 // Middleware
