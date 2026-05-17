@@ -23,6 +23,18 @@ exports.saveProgress = async (req, res) => {
         let formerTopUser = null;
         let formerTopUserId = null;
 
+        console.log(`[DEBUG_WS] UserId actual: ${userId}`);
+        if (previousTopProgress) {
+            console.log(`[DEBUG_WS] Récord anterior encontrado:`);
+            console.log(`[DEBUG_WS] - userId record anterior: ${previousTopProgress.userId}`);
+            console.log(`[DEBUG_WS] - score record anterior: ${previousTopProgress.score}`);
+            console.log(`[DEBUG_WS] - score actual enviado: ${score}`);
+            console.log(`[DEBUG_WS] - comparación userId !==: ${previousTopProgress.userId !== userId}`);
+            console.log(`[DEBUG_WS] - comparación score >: ${score > previousTopProgress.score}`);
+        } else {
+            console.log(`[DEBUG_WS] No hay récord anterior para el levelId ${levelId}`);
+        }
+
         if (previousTopProgress && previousTopProgress.userId !== userId) {
             if (score > previousTopProgress.score) {
                 isRecordBeaten = true;
@@ -92,12 +104,22 @@ exports.saveProgress = async (req, res) => {
         const io = req.app.get('io');
         const onlineUsers = req.app.get('onlineUsers');
 
+        console.log(`[DEBUG_WS] Encontrado io: ${!!io}, Encontrado onlineUsers: ${!!onlineUsers}`);
+        if (onlineUsers) {
+            console.log(`[DEBUG_WS] Usuarios online en el mapa:`, Array.from(onlineUsers.entries()));
+        }
+
         if (io) {
             // 1. Notificar actualización de Leaderboard en vivo
             io.emit('leaderboard_update', { instrument });
+            console.log(`[DEBUG_WS] Emitida actualización de leaderboard para: ${instrument}`);
 
             // 2. Notificar récord batido
             if (isRecordBeaten) {
+                console.log(`[DEBUG_WS] ¡Récord batido detectado! Emitiendo eventos...`);
+                console.log(`[DEBUG_WS] - ex-record: ${formerTopUser} (${formerTopUserId})`);
+                console.log(`[DEBUG_WS] - nuevo record: ${user.username} (${userId})`);
+                
                 // Broadcast a toda la comunidad online
                 io.emit('record_beaten_broadcast', {
                     levelTitle: level.title,
@@ -105,15 +127,20 @@ exports.saveProgress = async (req, res) => {
                     newTopUser: user.username,
                     score
                 });
+                console.log(`[DEBUG_WS] Emitido record_beaten_broadcast`);
 
                 // Alerta específica al rival superado si está online
-                if (onlineUsers && onlineUsers.has(String(formerTopUserId))) {
-                    const targetSocketId = onlineUsers.get(String(formerTopUserId));
+                const stringFormerTopUserId = String(formerTopUserId);
+                if (onlineUsers && onlineUsers.has(stringFormerTopUserId)) {
+                    const targetSocketId = onlineUsers.get(stringFormerTopUserId);
                     io.to(targetSocketId).emit('record_beaten_personal', {
                         levelTitle: level.title,
                         newTopUser: user.username,
                         score
                     });
+                    console.log(`[DEBUG_WS] Emitido record_beaten_personal al rival: ${stringFormerTopUserId} en socket: ${targetSocketId}`);
+                } else {
+                    console.log(`[DEBUG_WS] Rival ${stringFormerTopUserId} no está online en el mapa.`);
                 }
             }
         }
