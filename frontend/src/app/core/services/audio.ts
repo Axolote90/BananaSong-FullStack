@@ -37,7 +37,9 @@ export class AudioService {
     "guitar": { strings: ["E2", "A2", "D3", "G3", "B3", "E4"], assets: "guitar" },
     "guitar_acoustic": { strings: ["E2", "A2", "D3", "G3", "B3", "E4"], assets: "guitar_acoustic" },
     "guitar_electric": { strings: ["E2", "A2", "D3", "G3", "B3", "E4"], assets: "guitar_electric" },
-    "violin": { strings: ["G3", "D4", "A4", "E5"], assets: "violin" }
+    "violin": { strings: ["G3", "D4", "A4", "E5"], assets: "violin" },
+    "flute": { strings: ["C4", "E4", "G4", "C5", "E5", "G5"], assets: "flute" },
+    "piano": { strings: ["C4", "E4", "G4", "C5", "E5"], assets: "piano" }
   };
 
   public currentInstrument = "ukulele";

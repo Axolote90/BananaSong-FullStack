@@ -115,12 +115,13 @@ sequelize.sync({ alter: true }) // alter: true aplica los cambios a la db sin bo
         await Difficulty.findOrCreate({ where: { level: 'medium' } });
         await Difficulty.findOrCreate({ where: { level: 'hard' } });
 
-        // Sembrar Instrumentos Catálogo
         const Instrument = require('./models/Instrument');
         await Instrument.findOrCreate({ where: { name: 'ukulele' } });
         await Instrument.findOrCreate({ where: { name: 'guitar_acoustic' } });
         await Instrument.findOrCreate({ where: { name: 'guitar_electric' } });
         await Instrument.findOrCreate({ where: { name: 'violin' } });
+        await Instrument.findOrCreate({ where: { name: 'flute' } });
+        await Instrument.findOrCreate({ where: { name: 'piano' } });
         console.log('🌱 Semillas de dificultades e instrumentos cargadas y actualizadas.');
         
         const PORT = process.env.PORT || 3000;

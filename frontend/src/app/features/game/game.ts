@@ -52,7 +52,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   public isTutorialMode = signal(false);
   public tutorialStep = signal(0);
   public tutorialDialog = signal<string | null>(null);
-  public highlightArea = signal<number | 'strings' | 'note' | 'timer' | null>(null);
+  public highlightArea = signal<number | 'strings' | 'note' | 'timer' | 'clef' | null>(null);
   private isTutorialPaused = false;
   private isAutoPlaying = false;
 
@@ -142,6 +142,17 @@ export class GameComponent implements AfterViewInit, OnDestroy {
       "E4": { string: 3, fret: 2 }, "F#4": { string: 3, fret: 4 }, "G4": { string: 3, fret: 5 },
       "B4": { string: 2, fret: 2 }, "C#5": { string: 2, fret: 4 }, "D5": { string: 2, fret: 5 },
       "F#5": { string: 1, fret: 2 }, "G#5": { string: 1, fret: 4 }, "A5": { string: 1, fret: 5 }
+    },
+    "flute": {
+      "C4": { string: 1, fret: "Do" }, "D4": { string: 2, fret: "Re" }, "E4": { string: 3, fret: "Mi" }, "F4": { string: 4, fret: "Fa" },
+      "G4": { string: 5, fret: "Sol" }, "A4": { string: 6, fret: "La" }, "B4": { string: 7, fret: "Si" }, "C5": { string: 8, fret: "Do" },
+      "D5": { string: 9, fret: "Re" }, "E5": { string: 10, fret: "Mi" }, "F5": { string: 11, fret: "Fa" }, "G5": { string: 12, fret: "Sol" },
+      "A5": { string: 13, fret: "La" }, "B5": { string: 14, fret: "Si" }, "C6": { string: 15, fret: "Do" }
+    },
+    "piano": {
+      "C4": { string: 1, fret: "Do" }, "D4": { string: 2, fret: "Re" }, "E4": { string: 3, fret: "Mi" }, "F4": { string: 4, fret: "Fa" },
+      "G4": { string: 5, fret: "Sol" }, "A4": { string: 6, fret: "La" }, "B4": { string: 7, fret: "Si" }, "C5": { string: 8, fret: "Do" },
+      "D5": { string: 9, fret: "Re" }, "E5": { string: 10, fret: "Mi" }, "F5": { string: 11, fret: "Fa" }, "G5": { string: 12, fret: "Sol" }
     }
   };
 
@@ -149,6 +160,28 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     const instr = this.instrument();
     if (instr.startsWith('guitar')) return this.instrumentNoteDefinitions['guitar'];
     return this.instrumentNoteDefinitions[instr] || this.instrumentNoteDefinitions['ukulele'];
+  }
+
+  get isStaffInstrument(): boolean {
+    const instr = this.instrument();
+    return instr === 'flute' || instr === 'piano';
+  }
+
+  private getStaffNoteY(noteName: string, centerY: number, lineSpacing: number): number {
+    const stepsFromB4: { [key: string]: number } = {
+      "C4": -6, "C#4": -6, "D4": -5, "D#4": -5, "E4": -4, "F4": -3, "F#4": -3, "G4": -2, "G#4": -2, "A4": -1, "A#4": -1, "B4": 0, "C5": 1, "C#5": 1, "D5": 2, "D#5": 2, "E5": 3, "F5": 4, "F#5": 4, "G5": 5, "G#5": 5, "A5": 6, "A#5": 6, "B5": 7, "C6": 8
+    };
+    const noteBase = noteName.replace('#', '');
+    const step = stepsFromB4[noteName] !== undefined ? stepsFromB4[noteName] : (stepsFromB4[noteBase] || 0);
+    return centerY - step * (lineSpacing / 2);
+  }
+
+  private getSpanishNoteName(noteName: string): string {
+    const translation: { [key: string]: string } = {
+      "C": "Do", "C#": "Do#", "D": "Re", "D#": "Re#", "E": "Mi", "F": "Fa", "F#": "Fa#", "G": "Sol", "G#": "Sol#", "A": "La", "A#": "La#", "B": "Si"
+    };
+    const base = noteName.slice(0, -1);
+    return translation[base] || base;
   }
 
   ngAfterViewInit() {
@@ -204,10 +237,18 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     const queryInstrument = this.forcedInstrument || this.route.snapshot.queryParamMap.get('instrument') || urlParams.get('instrument');
     const userInstrument = queryInstrument || this.authService.currentUser()?.targetInstrument || 'ukulele';
     const isGuitar = userInstrument.startsWith('guitar');
+    const isFlute = userInstrument === 'flute';
 
     this.instrument.set(userInstrument);
-    this.stringCount.set(isGuitar ? 6 : 4);
-    this.neckHeight = isGuitar ? 250 : 190;
+    
+    if (isFlute) {
+      this.stringCount.set(8); // Escala de 8 notas en el pentagrama para el tutorial
+      this.neckHeight = 220;
+    } else {
+      this.stringCount.set(isGuitar ? 6 : 4);
+      this.neckHeight = isGuitar ? 250 : 190;
+    }
+    
     this.audioService.setInstrument(userInstrument);
     
     this.isTutorialPaused = true;
@@ -215,7 +256,31 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
     // Track para demostración y posterior prueba del jugador
     const tutorialTrack = [];
-    if (isGuitar) {
+    if (isFlute) {
+      // Flauta (Escala diatónica C4 a C5)
+      // Notas de Demostración
+      tutorialTrack.push(
+        { time: -4000, string: 1, fret: 0 },
+        { time: -3500, string: 2, fret: 0 },
+        { time: -3000, string: 3, fret: 0 },
+        { time: -2500, string: 4, fret: 0 },
+        { time: -2000, string: 5, fret: 0 },
+        { time: -1500, string: 6, fret: 0 },
+        { time: -1000, string: 7, fret: 0 },
+        { time: -500, string: 8, fret: 0 }
+      );
+      // Notas del Jugador
+      tutorialTrack.push(
+        { time: 10000, string: 1, fret: 0 },
+        { time: 11500, string: 2, fret: 0 },
+        { time: 13000, string: 3, fret: 0 },
+        { time: 14500, string: 4, fret: 0 },
+        { time: 16000, string: 5, fret: 0 },
+        { time: 17500, string: 6, fret: 0 },
+        { time: 19000, string: 7, fret: 0 },
+        { time: 20500, string: 8, fret: 0 }
+      );
+    } else if (isGuitar) {
       // Notas de Demostración (6 cuerdas al aire)
       tutorialTrack.push(
         { time: -3000, string: 6, fret: 0 },
@@ -258,6 +323,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   }
 
   get maxTutorialStep(): number {
+    if (this.instrument() === 'flute') return 7;
     return this.stringCount() === 6 ? 12 : 9;
   }
 
@@ -268,6 +334,46 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     this.highlightArea.set(null);
 
     const isGuitar = this.instrument().startsWith('guitar');
+    const isFlute = this.instrument() === 'flute';
+
+    if (isFlute) {
+      switch (step) {
+        case 1:
+          this.tutorialDialog.set("¡Bienvenido a Banana Song! Este es el nuevo motor de Pentagrama para la flauta.");
+          break;
+        case 2:
+          this.tutorialDialog.set("Las notas no se leen en cuerdas, sino sobre las 5 líneas y 4 espacios de este Pentagrama.");
+          this.highlightArea.set('strings');
+          break;
+        case 3:
+          this.tutorialDialog.set("Al inicio verás la Clave de Sol 𝄞, que indica la altura de los sonidos en el pentagrama.");
+          this.highlightArea.set('clef');
+          break;
+        case 4:
+          this.tutorialDialog.set("Las notas aparecerán con su nombre en español (Do, Re, Mi...) para que sepas exactamente qué nota soplar.");
+          this.highlightArea.set('note');
+          this.isTutorialPaused = false;
+          setTimeout(() => { this.isTutorialPaused = true; }, 3500); 
+          break;
+        case 5:
+          this.tutorialDialog.set("Cuando el círculo de tiempo llegue a la nota, debes soplar esa nota. ¡Mira cómo lo hace la demostración!");
+          this.highlightArea.set('timer');
+          break;
+        case 6:
+          this.tutorialDialog.set(null);
+          this.isTutorialPaused = false;
+          this.isAutoPlaying = true;
+          this.speedMultiplier = 2.0; // Velocidad cómoda para la escala
+          break;
+        case 7:
+          this.speedMultiplier = 1;
+          this.tutorialDialog.set("¡Ahora es tu turno! Toca las notas de la escala cuando crucen el círculo.");
+          this.isTutorialPaused = false;
+          this.isAutoPlaying = false;
+          break;
+      }
+      return;
+    }
 
     if (isGuitar) {
       switch (step) {
@@ -549,7 +655,11 @@ togglePause() {
 
       // 🔥 FIX DEL INDICADOR: Interpolación en updateLogic para compensar la velocidad
       const neckY = this.canvasRef.nativeElement.height * 0.4;
-      const targetY = neckY + targetNote.string * (this.neckHeight / (this.stringCount() + 1));
+      const centerY = neckY + this.neckHeight / 2;
+      const lineSpacing = 16;
+      const targetY = this.isStaffInstrument
+        ? this.getStaffNoteY(targetNote.name, centerY, lineSpacing)
+        : neckY + targetNote.string * (this.neckHeight / (this.stringCount() + 1));
       
       if (this.indicatorX < 0) {
         this.indicatorX = targetNote.x;
@@ -565,10 +675,11 @@ togglePause() {
           this.marcarNota(targetNote, 'perfect', 20);
           this.audioService.playNoteSound(targetNote.name);
           
-          const demoStep = this.stringCount() === 6 ? 11 : 8;
+          const isFlute = this.instrument() === 'flute';
+          const demoStep = isFlute ? 6 : (this.stringCount() === 6 ? 11 : 8);
           if (this.isTutorialMode() && this.tutorialStep() === demoStep) {
             // Cuando la demostración termine de tocar todas las notas
-            const requiredPerfect = this.stringCount() === 6 ? 6 : 4;
+            const requiredPerfect = isFlute ? 8 : (this.stringCount() === 6 ? 6 : 4);
             if (this.stats().perfect >= requiredPerfect && this.isAutoPlaying) {
               this.isAutoPlaying = false; // Detener auto-play instantáneamente
               this.speedMultiplier = 1; // Volver a la velocidad normal INMEDIATAMENTE
@@ -796,6 +907,26 @@ togglePause() {
 
   private drawInstrumentNeck(canvas: HTMLCanvasElement) {
     const instr = this.instrument();
+    if (this.isStaffInstrument) {
+      // Dibujar un elegante fondo de pentagrama premium (estilo cristal de noche)
+      const grad = this.ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height * 0.4 + this.neckHeight);
+      grad.addColorStop(0, "rgba(10, 10, 20, 0.9)");
+      grad.addColorStop(1, "rgba(25, 20, 45, 0.95)");
+      this.ctx.fillStyle = grad;
+      this.ctx.fillRect(0, canvas.height * 0.4, canvas.width, this.neckHeight);
+      
+      // Borde de neón azul sutil arriba y abajo para darle un toque premium
+      this.ctx.strokeStyle = "rgba(0, 191, 255, 0.4)";
+      this.ctx.lineWidth = 2;
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, canvas.height * 0.4);
+      this.ctx.lineTo(canvas.width, canvas.height * 0.4);
+      this.ctx.moveTo(0, canvas.height * 0.4 + this.neckHeight);
+      this.ctx.lineTo(canvas.width, canvas.height * 0.4 + this.neckHeight);
+      this.ctx.stroke();
+      return;
+    }
+
     let neckColor = "#666";
     let fretboardColor = "#333";
 
@@ -818,6 +949,48 @@ togglePause() {
   }
 
   private drawStrings(canvas: HTMLCanvasElement) {
+    if (this.isStaffInstrument) {
+      const centerY = canvas.height * 0.4 + this.neckHeight / 2;
+      const lineSpacing = 16;
+      const highlight = this.highlightArea();
+
+      // Dibujar las 5 líneas del pentagrama
+      for (let i = -2; i <= 2; i++) {
+        const y = centerY + i * lineSpacing;
+        this.ctx.beginPath();
+        this.ctx.moveTo(0, y);
+        this.ctx.lineTo(canvas.width, y);
+        
+        this.ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+        this.ctx.lineWidth = 1.5;
+
+        // Soporte para iluminar áreas en el tutorial de pentagrama
+        if (highlight === 'strings') {
+          this.ctx.strokeStyle = "rgba(0, 255, 255, 0.9)";
+          this.ctx.shadowColor = "#00FFFF";
+          this.ctx.shadowBlur = 8;
+        }
+
+        this.ctx.stroke();
+        this.ctx.shadowBlur = 0;
+      }
+
+      // Dibujar la clave de sol estilizada en Unicode
+      this.ctx.save();
+      this.ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+      
+      if (highlight === 'clef') {
+        this.ctx.fillStyle = "rgba(0, 255, 255, 1)";
+        this.ctx.shadowColor = "#00FFFF";
+        this.ctx.shadowBlur = 15;
+      }
+
+      this.ctx.font = "75px Times New Roman";
+      this.ctx.fillText("𝄞", this.hitLineX - 110, centerY + 25);
+      this.ctx.restore();
+      return;
+    }
+
     const strings = this.stringCount();
     const stringSpacing = this.neckHeight / (strings + 1);
     const neckY = canvas.height * 0.4;
@@ -890,8 +1063,12 @@ togglePause() {
     const noteRadius = 14;
     const distance = this.currentTargetNote.x - this.hitLineX;
     
-    // 🔥 FIX DEL INDICADOR: Y dinámica basada en el número de cuerdas
-    const targetY = neckY + this.currentTargetNote.string * stringSpacing;
+    // 🔥 FIX DEL INDICADOR: Y dinámica basada en el número de cuerdas o pentagrama
+    const centerY = neckY + this.neckHeight / 2;
+    const lineSpacing = 16;
+    const targetY = this.isStaffInstrument
+      ? this.getStaffNoteY(this.currentTargetNote.name, centerY, lineSpacing)
+      : neckY + this.currentTargetNote.string * stringSpacing;
     
     // Limit drawing to when the note is approaching or just passed
     if (distance < -60 || distance > 250) return;
@@ -944,11 +1121,16 @@ togglePause() {
   }
 
   private drawNotes() {
+    const canvas = this.canvasRef.nativeElement;
     const neckY = this.canvasRef.nativeElement.height * 0.4;
     const stringSpacing = this.neckHeight / (this.stringCount() + 1); 
+    const centerY = neckY + this.neckHeight / 2;
+    const lineSpacing = 16;
 
     for (const note of this.activeNotes) {
-      const stringY = neckY + note.string * stringSpacing;
+      const stringY = this.isStaffInstrument
+        ? this.getStaffNoteY(note.name, centerY, lineSpacing)
+        : neckY + note.string * stringSpacing;
       let color1, color2;
       switch (note.status) {
         case 'perfect': color1 = "#00FFFF"; color2 = "#008888"; break; 
@@ -958,6 +1140,27 @@ togglePause() {
         case 'miss':    color1 = "#FF0000"; color2 = "#990000"; break; 
         default:        color1 = "#FDAB07"; color2 = "#C78602"; break; 
       }
+
+      // Dibujar líneas adicionales para instrumentos de pentagrama
+      if (this.isStaffInstrument) {
+        const stepsFromB4: { [key: string]: number } = {
+          "C4": -6, "C#4": -6, "D4": -5, "D#4": -5, "E4": -4, "F4": -3, "F#4": -3, "G4": -2, "G#4": -2, "A4": -1, "A#4": -1, "B4": 0, "C5": 1, "C#5": 1, "D5": 2, "D#5": 2, "E5": 3, "F5": 4, "F#5": 4, "G5": 5, "G#5": 5, "A5": 6, "A#5": 6, "B5": 7, "C6": 8
+        };
+        const noteBase = note.name.replace('#', '');
+        const step = stepsFromB4[note.name] !== undefined ? stepsFromB4[note.name] : (stepsFromB4[noteBase] || 0);
+
+        if (step <= -6 || step >= 6) {
+          this.ctx.save();
+          this.ctx.beginPath();
+          this.ctx.moveTo(note.x - 22, stringY);
+          this.ctx.lineTo(note.x + 22, stringY);
+          this.ctx.strokeStyle = "rgba(255, 255, 255, 0.75)";
+          this.ctx.lineWidth = 1.5;
+          this.ctx.stroke();
+          this.ctx.restore();
+        }
+      }
+
       this.ctx.save();
       this.ctx.shadowColor = color1;
       this.ctx.shadowBlur = 10;
@@ -965,10 +1168,19 @@ togglePause() {
       this.ctx.beginPath(); this.ctx.arc(note.x, stringY, 14, 0, Math.PI, false); this.ctx.fillStyle = color2; this.ctx.fill();
       this.ctx.restore();
       
-      const def = this.noteDefinitions[note.name];
-      const fretNumber = def ? def.fret : 0;
-      this.ctx.fillStyle = "white"; this.ctx.font = "bold 14px Arial";
-      this.ctx.fillText(fretNumber.toString(), note.x - 4, stringY + 5);
+      let textToDraw = "";
+      if (this.isStaffInstrument) {
+        textToDraw = this.getSpanishNoteName(note.name);
+      } else {
+        const def = this.noteDefinitions[note.name];
+        textToDraw = def ? def.fret.toString() : "0";
+      }
+
+      this.ctx.fillStyle = "white"; 
+      this.ctx.font = this.isStaffInstrument ? "bold 11px Arial" : "bold 14px Arial";
+      
+      const textWidth = this.ctx.measureText(textToDraw).width;
+      this.ctx.fillText(textToDraw, note.x - textWidth / 2, stringY + 4);
     }
   }
 

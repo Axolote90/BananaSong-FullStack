@@ -35,7 +35,8 @@ export class OnboardingComponent {
     { id: 'ukulele', name: 'Ukelele', icon: '🎸', description: 'El pequeño gigante' },
     { id: 'guitar_acoustic', name: 'Guitarra Acústica', icon: '🎵', description: 'Sonido cálido y natural' },
     { id: 'guitar_electric', name: 'Guitarra Eléctrica', icon: '⚡', description: 'Poder y versatilidad' },
-    { id: 'keyboard', name: 'Teclado', icon: '🎹', description: 'Armonía y melodía' },
+    { id: 'piano', name: 'Piano', icon: '🎹', description: 'Armonía y melodía' },
+    { id: 'flute', name: 'Flauta Dulce', icon: '💨', description: 'Viento y melodía clásica' },
     { id: 'violin', name: 'Violín', icon: '🎻', description: 'Elegancia clásica' }
   ];
 

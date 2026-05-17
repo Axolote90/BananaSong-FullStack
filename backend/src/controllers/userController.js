@@ -93,7 +93,7 @@ exports.enrollInstrument = async (req, res) => {
             return res.status(400).json({ message: "El instrumento es requerido" });
         }
 
-        const validInstruments = ['ukulele', 'guitar_acoustic', 'guitar_electric', 'violin'];
+        const validInstruments = ['ukulele', 'guitar_acoustic', 'guitar_electric', 'violin', 'flute', 'piano'];
         if (!validInstruments.includes(instrument)) {
             return res.status(400).json({ message: "Instrumento no válido" });
         }
