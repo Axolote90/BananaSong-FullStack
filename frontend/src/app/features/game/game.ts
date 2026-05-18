@@ -26,6 +26,14 @@ interface Particle {
   size: number;
 }
 
+interface BgCircle {
+  x: number;
+  y: number;
+  radius: number;
+  opacity: number;
+  speedFactor: number;
+}
+
 @Component({
   selector: 'app-game',
   standalone: true,
@@ -103,6 +111,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   private linePositionX: number = -400;
   private activeNotes: ActiveNote[] = [];
   private particles: Particle[] = [];
+  private bgCircles: BgCircle[] = [];
   
   private hitLineX = 0; 
   private startX = 0;
@@ -586,6 +595,40 @@ togglePause() {
   };
 
   private updateLogic(deltaTime: number) {
+    // Mover círculos de fondo flotantes a la misma velocidad y dirección que el scroll del juego
+    const songSpeed = this.scrollSpeed * this.speedMultiplier * deltaTime;
+    const canvasWidth = this.canvasRef.nativeElement.width;
+    
+    for (let i = this.bgCircles.length - 1; i >= 0; i--) {
+      const c = this.bgCircles[i];
+      c.x -= songSpeed * c.speedFactor;
+      
+      // Desvanecerse conforme se acercan al lado izquierdo (x < canvasWidth * 0.35)
+      const fadeThreshold = canvasWidth * 0.35;
+      if (c.x < fadeThreshold) {
+        c.opacity = Math.max(0, (c.x / fadeThreshold) * 0.15);
+      }
+      
+      // Si salen de la pantalla por la izquierda (o por la derecha si rebobinamos)
+      if (c.x < -20) {
+        this.bgCircles[i] = {
+          x: canvasWidth + 20,
+          y: Math.random() * (this.canvasRef.nativeElement.height * 0.4),
+          radius: Math.random() * 6 + 2,
+          opacity: Math.random() * 0.15 + 0.05,
+          speedFactor: Math.random() * 0.3 + 0.85
+        };
+      } else if (c.x > canvasWidth + 40) {
+        this.bgCircles[i] = {
+          x: -10,
+          y: Math.random() * (this.canvasRef.nativeElement.height * 0.4),
+          radius: Math.random() * 6 + 2,
+          opacity: Math.random() * 0.15 + 0.05,
+          speedFactor: Math.random() * 0.3 + 0.85
+        };
+      }
+    }
+
     // 1. Mover las líneas a la velocidad global (afectado por el rebobinado)
     this.linePositionX -= this.scrollSpeed * this.speedMultiplier * deltaTime;
     const numLines = 13;
@@ -913,6 +956,21 @@ togglePause() {
   }
 
   private drawBackground(canvas: HTMLCanvasElement) {
+    // 1. Fondo de gris oscuro premium
+    this.ctx.fillStyle = "#16161a";
+    this.ctx.fillRect(0, 0, canvas.width, canvas.height * 0.4);
+    
+    // 2. Dibujar círculos de fondo flotantes
+    this.ctx.save();
+    for (const c of this.bgCircles) {
+      this.ctx.fillStyle = `rgba(255, 255, 255, ${c.opacity})`;
+      this.ctx.beginPath();
+      this.ctx.arc(c.x, c.y, c.radius, 0, Math.PI * 2);
+      this.ctx.fill();
+    }
+    this.ctx.restore();
+
+    // 3. Gradiente sutil cacheado de desvanecimiento hacia el mástil
     if (this.bgGradient) {
       this.ctx.fillStyle = this.bgGradient;
       this.ctx.fillRect(0, 0, canvas.width, canvas.height * 0.4);
@@ -1231,6 +1289,24 @@ togglePause() {
     this.bgGradient = this.ctx.createLinearGradient(0, 0, 0, canvas.height * 0.4);
     this.bgGradient.addColorStop(0, "rgba(0, 0, 0, 0.0)"); 
     this.bgGradient.addColorStop(1, "rgba(0, 0, 0, 0.6)"); 
+
+    // Inicializar los círculos de fondo flotantes
+    this.initBgCircles();
+  }
+
+  private initBgCircles() {
+    const canvas = this.canvasRef.nativeElement;
+    this.bgCircles = [];
+    // Generar 30 círculos de fondo tenues con distribución uniforme inicial
+    for (let i = 0; i < 30; i++) {
+      this.bgCircles.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * (canvas.height * 0.4),
+        radius: Math.random() * 5 + 1.5,
+        opacity: Math.random() * 0.12 + 0.03, // Muy tenue
+        speedFactor: Math.random() * 0.3 + 0.85 // Viajan cercano a 1x velocidad
+      });
+    }
   }
 
   private iniciarCancionReal(trackData: any[]) {
