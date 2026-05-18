@@ -193,30 +193,96 @@
               <!-- VISTA PARA LA FLAUTA DULCE -->
               @if (selectedInstrument() === 'flute') {
                 <div class="flute-diagram">
-                  <div class="flute-body">
+                  <div class="flute-container-wrapper">
                     <!-- Agujero Trasero (Pulgar) -->
-                    <div class="hole-row thumb-row">
-                      <div class="hole-label">Pulgar (Atrás)</div>
+                    <div class="thumb-hole-panel">
+                      <span class="hole-label">Pulgar (Atrás)</span>
                       <div class="flute-hole thumb-hole" 
                            [class.closed]="activeNote.fingers?.[0] === 1"
                            [class.half]="activeNote.fingers?.[0] === 0.5"
                            [class.open]="activeNote.fingers?.[0] === 0">
                       </div>
                     </div>
-                    
-                    <div class="flute-line"></div>
-                    
-                    <!-- Agujeros Delanteros (1 a 7) -->
-                    @for (holeState of activeNote.fingers?.slice(1); track $index) {
-                      <div class="hole-row">
-                        <span class="hole-number">{{ $index + 1 }}</span>
-                        <div class="flute-hole" 
-                             [class.closed]="holeState === 1"
-                             [class.half]="holeState === 0.5"
-                             [class.open]="holeState === 0">
+
+                    <div class="flute-instrument-body">
+                      <!-- El SVG estilizado y realista de la flauta dulce -->
+                      <svg viewBox="0 0 100 600" class="flute-svg-body" xmlns="http://www.w3.org/2000/svg">
+                        <defs>
+                          <linearGradient id="fluteWood" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#1e1108" />
+                            <stop offset="25%" stop-color="#3d2110" />
+                            <stop offset="50%" stop-color="#5c3218" />
+                            <stop offset="75%" stop-color="#3d2110" />
+                            <stop offset="100%" stop-color="#1e1108" />
+                          </linearGradient>
+                          <linearGradient id="fluteIvory" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#b8935c" />
+                            <stop offset="50%" stop-color="#fdf4e3" />
+                            <stop offset="100%" stop-color="#b8935c" />
+                          </linearGradient>
+                          <filter id="fluteShadow" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="10" stdDeviation="6" flood-color="#000000" flood-opacity="0.6"/>
+                          </filter>
+                        </defs>
+                        <!-- Boquilla (Mouthpiece) -->
+                        <path d="M 38 20 L 62 20 L 60 70 L 40 70 Z" fill="url(#fluteIvory)" filter="url(#fluteShadow)" />
+                        <path d="M 40 70 L 60 70 C 60 100 58 130 56 160 C 44 130 40 100 40 70 Z" fill="url(#fluteWood)" />
+                        <!-- Anillo superior de marfil -->
+                        <path d="M 43 160 L 57 160 L 57 172 L 43 172 Z" fill="url(#fluteIvory)" />
+                        <!-- Cuerpo central -->
+                        <path d="M 44 172 L 56 172 L 50 490 L 50 490 Z" fill="url(#fluteWood)" />
+                        <!-- Anillo inferior -->
+                        <path d="M 49 490 L 51 490 L 52 502 L 48 502 Z" fill="url(#fluteIvory)" />
+                        <!-- Campana (Pie de la flauta) -->
+                        <path d="M 48 502 L 52 502 L 57 560 L 43 560 Z" fill="url(#fluteWood)" />
+                        <path d="M 43 560 L 57 560 Q 50 580 57 580 L 43 580 Q 50 580 43 560 Z" fill="url(#fluteIvory)" />
+                      </svg>
+
+                      <!-- Agujeros colocados sobre el SVG con precisión física -->
+                      <div class="flute-holes-overlay">
+                        <!-- Agujeros simples 1 a 5 -->
+                        @for (holeState of activeNote.fingers?.slice(1, 6); track $index) {
+                          <div class="flute-hole-wrapper" [style.top.%]="25 + $index * 11">
+                            <span class="hole-number-tag">{{ $index + 1 }}</span>
+                            <div class="flute-hole" 
+                                 [class.closed]="holeState === 1"
+                                 [class.half]="holeState === 0.5"
+                                 [class.open]="holeState === 0">
+                            </div>
+                          </div>
+                        }
+
+                        <!-- Agujero doble 6 -->
+                        <div class="flute-hole-wrapper double-hole-wrapper" style="top: 77%;">
+                          <span class="hole-number-tag">6</span>
+                          <div class="double-holes-container">
+                            <div class="flute-hole mini-hole"
+                                 [class.closed]="activeNote.fingers?.[6] === 1 || activeNote.fingers?.[6] === 0.5"
+                                 [class.open]="activeNote.fingers?.[6] === 0">
+                            </div>
+                            <div class="flute-hole mini-hole"
+                                 [class.closed]="activeNote.fingers?.[6] === 1"
+                                 [class.open]="activeNote.fingers?.[6] === 0 || activeNote.fingers?.[6] === 0.5">
+                            </div>
+                          </div>
+                        </div>
+
+                        <!-- Agujero doble 7 -->
+                        <div class="flute-hole-wrapper double-hole-wrapper" style="top: 88%;">
+                          <span class="hole-number-tag">7</span>
+                          <div class="double-holes-container">
+                            <div class="flute-hole mini-hole"
+                                 [class.closed]="activeNote.fingers?.[7] === 1 || activeNote.fingers?.[7] === 0.5"
+                                 [class.open]="activeNote.fingers?.[7] === 0">
+                            </div>
+                            <div class="flute-hole mini-hole"
+                                 [class.closed]="activeNote.fingers?.[7] === 1"
+                                 [class.open]="activeNote.fingers?.[7] === 0 || activeNote.fingers?.[7] === 0.5">
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    }
+                    </div>
                   </div>
                 </div>
               }
@@ -250,6 +316,9 @@
               @else {
                 <div class="fretboard-diagram">
                   <div class="fretboard">
+                    <!-- Cejilla de la Pala (Nut) -->
+                    <div class="fretboard-nut"></div>
+
                     <!-- Renderizar cuerdas horizontales -->
                     @for (str of [].constructor(selectedInstrument() === 'ukulele' || selectedInstrument() === 'violin' ? 4 : 6); track $index; let sIdx = $index) {
                       <div class="fret-string-line" 
@@ -268,9 +337,10 @@
                     <!-- Puntos de dedos en trastes -->
                     @for (pos of activeNote.fretPositions; track pos.string) {
                       <div class="fret-dot"
+                           [class.open-string]="pos.fret === 0"
                            [style.top.%]="((pos.string - 1) / (selectedInstrument() === 'ukulele' || selectedInstrument() === 'violin' ? 3 : 5)) * 100"
-                           [style.left.%]="pos.fret === 0 ? -5 : ((pos.fret - 1.5) / 4) * 100">
-                        {{ pos.finger }}
+                           [style.left.%]="pos.fret === 0 ? -12 : ((pos.fret - 1.5) / 4) * 100">
+                        {{ pos.fret === 0 ? 'O' : pos.finger }}
                       </div>
                     }
                   </div>

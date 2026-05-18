@@ -838,77 +838,106 @@
   justify-content: center;
   align-items: center;
   height: 100%;
+  width: 100%;
 }
 
-.flute-body {
-  position: relative;
-  background: linear-gradient(180deg, #3a2212 0%, #1e1108 100%);
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  width: 60px;
-  border-radius: 30px;
-  padding: 20px 0;
+.flute-container-wrapper {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 12px;
-  box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+  gap: 20px;
+  height: 100%;
 }
 
-.flute-line {
-  width: 100%;
-  height: 1px;
-  background: rgba(255, 255, 255, 0.1);
-  margin: 5px 0;
-}
-
-.hole-row {
+.thumb-hole-panel {
   display: flex;
   align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.flute-instrument-body {
+  position: relative;
+  width: 180px;
+  height: 480px;
+  display: flex;
   justify-content: center;
+}
+
+.flute-svg-body {
   width: 100%;
-  gap: 15px;
-  padding: 0 10px;
+  height: 100%;
 }
 
-.thumb-row {
-  margin-bottom: 5px;
+.flute-holes-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
 }
 
-.hole-label {
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.5);
-  width: 80px;
-  text-align: right;
+.flute-hole-wrapper {
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 10;
 }
 
-.hole-number {
+.hole-number-tag {
   font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.5);
-  font-weight: 700;
-  width: 20px;
+  font-weight: 800;
+  color: rgba(255, 255, 255, 0.4);
+  width: 15px;
   text-align: right;
 }
 
 .flute-hole {
-  width: 24px;
-  height: 24px;
+  width: 18px;
+  height: 18px;
   border-radius: 50%;
-  border: 2.5px solid rgba(255, 255, 255, 0.3);
-  transition: all 0.2s ease;
-  background: rgba(0, 0, 0, 0.6);
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  background: rgba(10, 5, 2, 0.95);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.4);
 }
 
 .flute-hole.closed {
   background: #f1c40f;
-  border-color: #f39c12;
-  box-shadow: 0 0 15px rgba(241, 196, 15, 0.6), inset 0 -2px 5px rgba(0,0,0,0.3);
+  border-color: #ffffff;
+  box-shadow: 0 0 15px rgba(241, 196, 15, 0.8), inset 0 -2px 4px rgba(0,0,0,0.4);
+  transform: scale(1.1);
 }
 
 .flute-hole.half {
-  background: linear-gradient(90deg, #f1c40f 50%, rgba(0,0,0,0.6) 50%);
-  border-color: #f39c12;
-  box-shadow: 0 0 10px rgba(241, 196, 15, 0.4);
+  background: linear-gradient(90deg, #f1c40f 50%, rgba(10, 5, 2, 0.95) 50%);
+  border-color: #ffffff;
+  box-shadow: 0 0 10px rgba(241, 196, 15, 0.6);
+  transform: scale(1.05);
+}
+
+/* Agujeros dobles en la parte inferior */
+.double-hole-wrapper {
+  display: flex;
+  align-items: center;
+}
+
+.double-holes-container {
+  display: flex;
+  gap: 4px;
+}
+
+.double-holes-container .mini-hole {
+  width: 11px;
+  height: 11px;
+  border-width: 1.5px;
 }
 
 /* --- DIAGRAMA DE PIANO --- */
@@ -1020,6 +1049,18 @@
   overflow: visible;
 }
 
+.fretboard-nut {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  background: linear-gradient(90deg, #c2b280 0%, #fdf5e6 50%, #c2b280 100%);
+  border-right: 2px solid rgba(0, 0, 0, 0.6);
+  box-shadow: 2px 0 5px rgba(0,0,0,0.5);
+  z-index: 15;
+}
+
 .fret-string-line {
   position: absolute;
   left: 0;
@@ -1066,6 +1107,17 @@
   box-shadow: 0 0 12px rgba(241, 196, 15, 0.7);
   z-index: 20;
   animation: popDot 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.fret-dot.open-string {
+  background: transparent !important;
+  border: 3px solid #2ecc71 !important;
+  color: #2ecc71 !important;
+  font-weight: 800;
+  box-shadow: 0 0 10px rgba(46, 204, 115, 0.8) !important;
+  width: 22px;
+  height: 22px;
+  font-size: 0.75rem;
 }
 
 @keyframes popDot {
