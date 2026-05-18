@@ -253,6 +253,32 @@ const expandedSongs = [
       { time: 8000, string: 2, fret: 0, name: "D4" },
       { time: 8800, string: 1, fret: 0, name: "C4" }
     ]
+  },
+  {
+    title: "Prueba de Acordes: Ukelele Pro (C-Am-F-G)",
+    difficulty: "easy",
+    bpm: 80,
+    instrument: "ukulele",
+    track_data: [
+      { time: 1000, string: 1, fret: 0, name: "C", isChord: true },
+      { time: 3000, string: 1, fret: 0, name: "Am", isChord: true },
+      { time: 5000, string: 1, fret: 0, name: "F", isChord: true },
+      { time: 7000, string: 1, fret: 0, name: "G", isChord: true },
+      { time: 9000, string: 1, fret: 0, name: "C", isChord: true }
+    ]
+  },
+  {
+    title: "Prueba de Acordes: Guitarra Clásica (G-Em-C-D)",
+    difficulty: "easy",
+    bpm: 80,
+    instrument: "guitar_acoustic",
+    track_data: [
+      { time: 1000, string: 1, fret: 0, name: "G", isChord: true },
+      { time: 3000, string: 1, fret: 0, name: "Em", isChord: true },
+      { time: 5000, string: 1, fret: 0, name: "C", isChord: true },
+      { time: 7000, string: 1, fret: 0, name: "D", isChord: true },
+      { time: 9000, string: 1, fret: 0, name: "G", isChord: true }
+    ]
   }
 ];
 
