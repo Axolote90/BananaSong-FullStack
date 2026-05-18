@@ -4,7 +4,7 @@ import { CommonModule } from '@angular/common';
 import { LevelService } from '../../core/services/level';
 import { Level } from '../../core/models/level';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faPlay, faEye, faGear, faUser, faFire, faHeart, faMusic, faPlus } from '@fortawesome/free-solid-svg-icons'; 
+import { faPlay, faEye, faGear, faUser, faFire, faHeart, faMusic, faPlus, faBook } from '@fortawesome/free-solid-svg-icons'; 
 import { AuthService } from '../../core/services/auth';
 
 
@@ -32,12 +32,15 @@ export class GameMenuComponent implements OnInit {
   faHeart = faHeart;
   faMusic = faMusic;
   faPlus = faPlus;
+  faBook = faBook;
 
   // --- ESTADO (Signals) ---
   levels = signal<Level[]>([]);
   isLoading = signal(true);
   errorMessage = signal('');
   showAddInstrumentMenu = signal(false);
+  showNotesGuide = signal(false);
+  activeGuideNoteIndex = signal<number>(0);
 
   // --- TUTORIAL ESTADO ---
   isTutorialMode = signal(false);
@@ -55,6 +58,64 @@ export class GameMenuComponent implements OnInit {
     { id: 'flute', name: 'Flauta Dulce', icon: '💨' },
     { id: 'piano', name: 'Piano', icon: '🎹' }
   ];
+
+  // --- GUÍA DE NOTAS Y ACORDES ---
+  guideData: { [key: string]: Array<{ name: string, subtitle?: string, fingers?: number[], pianoKeys?: number[], fretPositions?: Array<{ string: number, fret: number, finger?: string }> }> } = {
+    "flute": [
+      { name: "Do (C4)", subtitle: "Todos los agujeros cerrados", fingers: [1, 1, 1, 1, 1, 1, 1, 1] },
+      { name: "Re (D4)", subtitle: "Quitar el meñique derecho", fingers: [1, 1, 1, 1, 1, 1, 1, 0] },
+      { name: "Mi (E4)", subtitle: "Quitar los dos dedos de la mano derecha", fingers: [1, 1, 1, 1, 1, 1, 0, 0] },
+      { name: "Fa (F4)", subtitle: "Agujero 5 abierto (estilo alemán)", fingers: [1, 1, 1, 1, 1, 0, 0, 0] },
+      { name: "Sol (G4)", subtitle: "Mano izquierda cerrada", fingers: [1, 1, 1, 1, 0, 0, 0, 0] },
+      { name: "La (A4)", subtitle: "Dos dedos mano izquierda", fingers: [1, 1, 1, 0, 0, 0, 0, 0] },
+      { name: "Si (B4)", subtitle: "Un solo dedo mano izquierda", fingers: [1, 1, 0, 0, 0, 0, 0, 0] },
+      { name: "Do (C5)", subtitle: "Agujero 2 cerrado (dedo medio)", fingers: [1, 0, 1, 0, 0, 0, 0, 0] },
+      { name: "Re (D5)", subtitle: "Agujero 2 cerrado, pulgar libre", fingers: [0, 0, 1, 0, 0, 0, 0, 0] },
+      { name: "Mi (E5)", subtitle: "Pulgar a la mitad", fingers: [0.5, 1, 1, 1, 1, 1, 0, 0] },
+      { name: "Fa (F5)", subtitle: "Pulgar a la mitad", fingers: [0.5, 1, 1, 1, 1, 0, 0, 0] },
+      { name: "Sol (G5)", subtitle: "Pulgar a la mitad", fingers: [0.5, 1, 1, 1, 0, 0, 0, 0] }
+    ],
+    "ukulele": [
+      { name: "Do Mayor (C)", subtitle: "El acorde de inicio perfecto", fretPositions: [{ string: 1, fret: 3, finger: "3" }] },
+      { name: "Sol Mayor (G)", subtitle: "Clásico y alegre", fretPositions: [{ string: 1, fret: 2, finger: "2" }, { string: 2, fret: 3, finger: "3" }, { string: 3, fret: 2, finger: "1" }] },
+      { name: "La Menor (Am)", subtitle: "Melancólico e intenso", fretPositions: [{ string: 4, fret: 2, finger: "2" }] },
+      { name: "Fa Mayor (F)", subtitle: "Cálido y dulce", fretPositions: [{ string: 4, fret: 2, finger: "2" }, { string: 2, fret: 1, finger: "1" }] },
+      { name: "Re Mayor (D)", subtitle: "Brillante y sonoro", fretPositions: [{ string: 4, fret: 2, finger: "1" }, { string: 3, fret: 2, finger: "2" }, { string: 2, fret: 2, finger: "3" }] },
+      { name: "Mi Menor (Em)", subtitle: "Oscuro y profundo", fretPositions: [{ string: 1, fret: 2, finger: "1" }, { string: 2, fret: 3, finger: "2" }, { string: 3, fret: 4, finger: "3" }] }
+    ],
+    "guitar": [
+      { name: "Do Mayor (C)", subtitle: "Acorde clásico indispensable", fretPositions: [{ string: 2, fret: 1, finger: "1" }, { string: 4, fret: 2, finger: "2" }, { string: 5, fret: 3, finger: "3" }] },
+      { name: "Sol Mayor (G)", subtitle: "Campestre y vibrante", fretPositions: [{ string: 1, fret: 3, finger: "3" }, { string: 5, fret: 2, finger: "1" }, { string: 6, fret: 3, finger: "2" }] },
+      { name: "La Menor (Am)", subtitle: "Suave, triste y popular", fretPositions: [{ string: 2, fret: 1, finger: "1" }, { string: 3, fret: 2, finger: "3" }, { string: 4, fret: 2, finger: "2" }] },
+      { name: "Mi Mayor (E)", subtitle: "Profundo y lleno de fuerza", fretPositions: [{ string: 3, fret: 1, finger: "1" }, { string: 4, fret: 2, finger: "3" }, { string: 5, fret: 2, finger: "2" }] },
+      { name: "Re Mayor (D)", subtitle: "Limpieza cristalina", fretPositions: [{ string: 1, fret: 2, finger: "2" }, { string: 2, fret: 3, finger: "3" }, { string: 3, fret: 2, finger: "1" }] },
+      { name: "Fa Mayor (F)", subtitle: "Cejilla completa en traste 1", fretPositions: [{ string: 1, fret: 1, finger: "1" }, { string: 2, fret: 1, finger: "1" }, { string: 3, fret: 2, finger: "2" }, { string: 4, fret: 3, finger: "4" }, { string: 5, fret: 3, finger: "3" }, { string: 6, fret: 1, finger: "1" }] }
+    ],
+    "violin": [
+      { name: "Sol (G3)", subtitle: "4ª cuerda al aire", fretPositions: [{ string: 4, fret: 0, finger: "0" }] },
+      { name: "Re (D4)", subtitle: "3ª cuerda al aire", fretPositions: [{ string: 3, fret: 0, finger: "0" }] },
+      { name: "La (A4)", subtitle: "2ª cuerda al aire", fretPositions: [{ string: 2, fret: 0, finger: "0" }] },
+      { name: "Mi (E5)", subtitle: "1ª cuerda al aire", fretPositions: [{ string: 1, fret: 0, finger: "0" }] },
+      { name: "La (A3)", subtitle: "4ª cuerda, 1er dedo", fretPositions: [{ string: 4, fret: 2, finger: "1" }] },
+      { name: "Si (B3)", subtitle: "4ª cuerda, 2do dedo", fretPositions: [{ string: 4, fret: 4, finger: "2" }] },
+      { name: "Do (C4)", subtitle: "4ª cuerda, 3er dedo", fretPositions: [{ string: 4, fret: 5, finger: "3" }] }
+    ],
+    "piano": [
+      { name: "Do (C4)", subtitle: "Tecla blanca izquierda de las 2 negras", pianoKeys: [0] },
+      { name: "Re (D4)", subtitle: "Tecla blanca central de las 2 negras", pianoKeys: [2] },
+      { name: "Mi (E4)", subtitle: "Tecla blanca derecha de las 2 negras", pianoKeys: [4] },
+      { name: "Fa (F4)", subtitle: "Tecla blanca izquierda de las 3 negras", pianoKeys: [5] },
+      { name: "Sol (G4)", subtitle: "1ª tecla blanca interior de las 3 negras", pianoKeys: [7] },
+      { name: "La (A4)", subtitle: "2ª tecla blanca interior de las 3 negras", pianoKeys: [9] },
+      { name: "Si (B4)", subtitle: "Tecla blanca derecha de las 3 negras", pianoKeys: [11] }
+    ]
+  };
+
+  get currentGuideNotes() {
+    const instr = this.selectedInstrument();
+    if (instr.startsWith('guitar')) return this.guideData['guitar'];
+    return this.guideData[instr] || [];
+  }
 
   get enrolledInstruments() {
     const stats = this.user()?.instrumentStats || {};
@@ -198,5 +259,14 @@ export class GameMenuComponent implements OnInit {
       return 'assets/img/banana.jpg';
     }
     return url;
+  }
+
+  toggleNotesGuide() {
+    this.showNotesGuide.update(prev => !prev);
+    this.activeGuideNoteIndex.set(0);
+  }
+
+  selectGuideNote(index: number) {
+    this.activeGuideNoteIndex.set(index);
   }
 }

@@ -89,7 +89,16 @@
       <fa-icon [icon]="faMusic" class="stat-icon tuner-icon"></fa-icon>
       <div class="stat-info">
         <span class="stat-label">Afinador</span>
-        <span class="stat-value">Libre</span>
+        <span class="stat-value">Afinar Instrumento</span>
+      </div>
+    </div>
+
+    <!-- Notes Guide Card -->
+    <div class="bento-item guide-card" (click)="toggleNotesGuide()">
+      <fa-icon [icon]="faBook" class="stat-icon guide-icon"></fa-icon>
+      <div class="stat-info">
+        <span class="stat-label">Guía de Notas</span>
+        <span class="stat-value">Ver Digitaciones</span>
       </div>
     </div>
 
@@ -144,6 +153,136 @@
     <div class="tutorial-bubble">
       <p>{{ tutorialDialog() }}</p>
       <button class="btn-tutorial" (click)="nextTutorialStep()">Entendido</button>
+    </div>
+  </div>
+}
+
+<!-- OVERLAY DE LA GUÍA DE NOTAS -->
+@if (showNotesGuide()) {
+  <div class="notes-guide-overlay" (click)="toggleNotesGuide()">
+    <div class="guide-modal glass-morphism" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>
+          Guía de Digitaciones y Acordes: {{ selectedInstrument() | titlecase }}
+        </h2>
+        <button class="close-btn" (click)="toggleNotesGuide()">&times;</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Panel Izquierdo: Lista de Notas/Acordes -->
+        <div class="notes-list-pane">
+          @for (note of currentGuideNotes; track note.name; let idx = $index) {
+            <button class="note-list-item" 
+                    [class.active]="activeGuideNoteIndex() === idx"
+                    (click)="selectGuideNote(idx)">
+              <span class="note-name">{{ note.name }}</span>
+              <span class="note-sub">{{ note.subtitle }}</span>
+            </button>
+          }
+        </div>
+
+        <!-- Panel Derecho: Visualizador de Digitaciones/Acordes -->
+        <div class="note-viewer-pane">
+          @if (currentGuideNotes[activeGuideNoteIndex()]; as activeNote) {
+            <div class="viewer-header">
+              <h3>{{ activeNote.name }}</h3>
+              <p class="viewer-description">{{ activeNote.subtitle }}</p>
+            </div>
+
+            <div class="viewer-content">
+              <!-- VISTA PARA LA FLAUTA DULCE -->
+              @if (selectedInstrument() === 'flute') {
+                <div class="flute-diagram">
+                  <div class="flute-body">
+                    <!-- Agujero Trasero (Pulgar) -->
+                    <div class="hole-row thumb-row">
+                      <div class="hole-label">Pulgar (Atrás)</div>
+                      <div class="flute-hole thumb-hole" 
+                           [class.closed]="activeNote.fingers?.[0] === 1"
+                           [class.half]="activeNote.fingers?.[0] === 0.5"
+                           [class.open]="activeNote.fingers?.[0] === 0">
+                      </div>
+                    </div>
+                    
+                    <div class="flute-line"></div>
+                    
+                    <!-- Agujeros Delanteros (1 a 7) -->
+                    @for (holeState of activeNote.fingers?.slice(1); track $index) {
+                      <div class="hole-row">
+                        <span class="hole-number">{{ $index + 1 }}</span>
+                        <div class="flute-hole" 
+                             [class.closed]="holeState === 1"
+                             [class.half]="holeState === 0.5"
+                             [class.open]="holeState === 0">
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- VISTA PARA EL PIANO -->
+              @else if (selectedInstrument() === 'piano') {
+                <div class="piano-diagram">
+                  <div class="piano-keyboard">
+                    <!-- Renderizar 12 teclas C4 a B4 -->
+                    <div class="white-keys-container">
+                      @for (key of [0, 2, 4, 5, 7, 9, 11]; track key) {
+                        <div class="piano-key white-key"
+                             [class.active]="activeNote.pianoKeys?.includes(key)">
+                          <span class="key-label">{{ ['Do', 'Re', 'Mi', 'Fa', 'Sol', 'La', 'Si'][key === 0 ? 0 : key === 2 ? 1 : key === 4 ? 2 : key === 5 ? 3 : key === 7 ? 4 : key === 9 ? 5 : 6] }}</span>
+                        </div>
+                      }
+                    </div>
+                    <div class="black-keys-container">
+                      <div class="piano-key black-key key-c-sharp" [class.active]="activeNote.pianoKeys?.includes(1)"></div>
+                      <div class="piano-key black-key key-d-sharp" [class.active]="activeNote.pianoKeys?.includes(3)"></div>
+                      <div class="piano-key black-key spacer-key"></div>
+                      <div class="piano-key black-key key-f-sharp" [class.active]="activeNote.pianoKeys?.includes(6)"></div>
+                      <div class="piano-key black-key key-g-sharp" [class.active]="activeNote.pianoKeys?.includes(8)"></div>
+                      <div class="piano-key black-key key-a-sharp" [class.active]="activeNote.pianoKeys?.includes(10)"></div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <!-- VISTA PARA INSTRUMENTOS DE CUERDA (Ukelele, Guitarra, Violín) -->
+              @else {
+                <div class="fretboard-diagram">
+                  <div class="fretboard">
+                    <!-- Renderizar cuerdas horizontales -->
+                    @for (str of [].constructor(selectedInstrument() === 'ukulele' || selectedInstrument() === 'violin' ? 4 : 6); track $index; let sIdx = $index) {
+                      <div class="fret-string-line" 
+                           [style.top.%]="(sIdx / (selectedInstrument() === 'ukulele' || selectedInstrument() === 'violin' ? 3 : 5)) * 100">
+                      </div>
+                    }
+
+                    <!-- Renderizar trastes verticales (1 a 5) -->
+                    @for (fret of [1, 2, 3, 4, 5]; track fret; let fIdx = $index) {
+                      <div class="fret-bar" 
+                           [style.left.%]="(fIdx / 4) * 100">
+                        <span class="fret-number">{{ fret }}</span>
+                      </div>
+                    }
+
+                    <!-- Puntos de dedos en trastes -->
+                    @for (pos of activeNote.fretPositions; track pos.string) {
+                      <div class="fret-dot"
+                           [style.top.%]="((pos.string - 1) / (selectedInstrument() === 'ukulele' || selectedInstrument() === 'violin' ? 3 : 5)) * 100"
+                           [style.left.%]="pos.fret === 0 ? -5 : ((pos.fret - 1.5) / 4) * 100">
+                        {{ pos.finger }}
+                      </div>
+                    }
+                  </div>
+                  <div class="fretboard-legend">
+                    <span>Cuerdas: de la más delgada (arriba) a la más gruesa (abajo). El número en el traste indica qué dedo usar (1=Índice, 2=Medio, 3=Anular, 4=Meñique).</span>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </div>
     </div>
   </div>
 }
