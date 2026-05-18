@@ -970,6 +970,14 @@ togglePause() {
     }
     this.ctx.restore();
 
+    // 2.5 Añadir degradado luminoso del lado derecho de la pantalla
+    const glowWidth = 350;
+    const rightGlow = this.ctx.createLinearGradient(canvas.width - glowWidth, 0, canvas.width, 0);
+    rightGlow.addColorStop(0, "rgba(22, 22, 26, 0)"); // Se funde con el fondo gris oscuro
+    rightGlow.addColorStop(1, "rgba(251, 191, 36, 0.16)"); // Hermoso resplandor dorado luminoso muy sutil
+    this.ctx.fillStyle = rightGlow;
+    this.ctx.fillRect(canvas.width - glowWidth, 0, glowWidth, canvas.height * 0.4);
+
     // 3. Gradiente sutil cacheado de desvanecimiento hacia el mástil
     if (this.bgGradient) {
       this.ctx.fillStyle = this.bgGradient;
@@ -999,8 +1007,8 @@ togglePause() {
       return;
     }
 
-    let neckColor = "#8B4513"; // Mismo café Saddle Brown de la guitarra acústica
-    let fretboardColor = "#5D2906"; // Mismo café oscuro de la guitarra acústica
+    let neckColor = "#B07D53"; // Café claro miel para el Ukelele / instrumentos por defecto
+    let fretboardColor = "#704728"; // Café oscuro cálido para el diapasón por defecto
 
     if (instr === 'guitar_acoustic') {
       neckColor = "#8B4513"; // Saddle Brown
