@@ -144,15 +144,15 @@ export class GameComponent implements AfterViewInit, OnDestroy {
       "F#5": { string: 1, fret: 2 }, "G#5": { string: 1, fret: 4 }, "A5": { string: 1, fret: 5 }
     },
     "flute": {
-      "C4": { string: 1, fret: "Do" }, "D4": { string: 2, fret: "Re" }, "E4": { string: 3, fret: "Mi" }, "F4": { string: 4, fret: "Fa" },
-      "G4": { string: 5, fret: "Sol" }, "A4": { string: 6, fret: "La" }, "B4": { string: 7, fret: "Si" }, "C5": { string: 8, fret: "Do" },
-      "D5": { string: 9, fret: "Re" }, "E5": { string: 10, fret: "Mi" }, "F5": { string: 11, fret: "Fa" }, "G5": { string: 12, fret: "Sol" },
-      "A5": { string: 13, fret: "La" }, "B5": { string: 14, fret: "Si" }, "C6": { string: 15, fret: "Do" }
+      "C4": { string: 1, fret: 0 }, "D4": { string: 2, fret: 0 }, "E4": { string: 3, fret: 0 }, "F4": { string: 4, fret: 0 },
+      "G4": { string: 5, fret: 0 }, "A4": { string: 6, fret: 0 }, "B4": { string: 7, fret: 0 }, "C5": { string: 8, fret: 0 },
+      "D5": { string: 9, fret: 0 }, "E5": { string: 10, fret: 0 }, "F5": { string: 11, fret: 0 }, "G5": { string: 12, fret: 0 },
+      "A5": { string: 13, fret: 0 }, "B5": { string: 14, fret: 0 }, "C6": { string: 15, fret: 0 }
     },
     "piano": {
-      "C4": { string: 1, fret: "Do" }, "D4": { string: 2, fret: "Re" }, "E4": { string: 3, fret: "Mi" }, "F4": { string: 4, fret: "Fa" },
-      "G4": { string: 5, fret: "Sol" }, "A4": { string: 6, fret: "La" }, "B4": { string: 7, fret: "Si" }, "C5": { string: 8, fret: "Do" },
-      "D5": { string: 9, fret: "Re" }, "E5": { string: 10, fret: "Mi" }, "F5": { string: 11, fret: "Fa" }, "G5": { string: 12, fret: "Sol" }
+      "C4": { string: 1, fret: 0 }, "D4": { string: 2, fret: 0 }, "E4": { string: 3, fret: 0 }, "F4": { string: 4, fret: 0 },
+      "G4": { string: 5, fret: 0 }, "A4": { string: 6, fret: 0 }, "B4": { string: 7, fret: 0 }, "C5": { string: 8, fret: 0 },
+      "D5": { string: 9, fret: 0 }, "E5": { string: 10, fret: 0 }, "F5": { string: 11, fret: 0 }, "G5": { string: 12, fret: 0 }
     }
   };
 

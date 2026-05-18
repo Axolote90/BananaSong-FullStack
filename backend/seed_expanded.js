@@ -40,6 +40,68 @@ const expandedSongs = [
       { time: 8400, string: 5, fret: 3, name: "C3" }
     ]
   },
+  {
+    title: "Himno a la Alegría (Guitarra Acústica)",
+    difficulty: "easy",
+    bpm: 90,
+    instrument: "guitar_acoustic",
+    track_data: [
+      { time: 0, string: 2, fret: 1, name: "C4" },
+      { time: 600, string: 2, fret: 1, name: "C4" },
+      { time: 1200, string: 2, fret: 3, name: "D4" },
+      { time: 1800, string: 1, fret: 0, name: "E4" },
+      { time: 2400, string: 1, fret: 0, name: "E4" },
+      { time: 3000, string: 2, fret: 3, name: "D4" },
+      { time: 3600, string: 2, fret: 1, name: "C4" },
+      { time: 4200, string: 2, fret: 0, name: "B3" },
+      { time: 4800, string: 3, fret: 2, name: "A3" },
+      { time: 5400, string: 3, fret: 2, name: "A3" },
+      { time: 6000, string: 2, fret: 0, name: "B3" },
+      { time: 6600, string: 2, fret: 1, name: "C4" },
+      { time: 7200, string: 2, fret: 1, name: "C4" },
+      { time: 7800, string: 2, fret: 0, name: "B3" },
+      { time: 8400, string: 2, fret: 0, name: "B3" }
+    ]
+  },
+  {
+    title: "María tenía un corderito (Guitarra)",
+    difficulty: "easy",
+    bpm: 90,
+    instrument: "guitar_acoustic",
+    track_data: [
+      { time: 0, string: 1, fret: 0, name: "E4" },
+      { time: 600, string: 2, fret: 3, name: "D4" },
+      { time: 1200, string: 2, fret: 1, name: "C4" },
+      { time: 1800, string: 2, fret: 3, name: "D4" },
+      { time: 2400, string: 1, fret: 0, name: "E4" },
+      { time: 3000, string: 1, fret: 0, name: "E4" },
+      { time: 3600, string: 1, fret: 0, name: "E4" },
+      { time: 4800, string: 2, fret: 3, name: "D4" },
+      { time: 5400, string: 2, fret: 3, name: "D4" },
+      { time: 6000, string: 2, fret: 3, name: "D4" },
+      { time: 7200, string: 1, fret: 0, name: "E4" },
+      { time: 7800, string: 1, fret: 3, name: "G4" },
+      { time: 8400, string: 1, fret: 3, name: "G4" }
+    ]
+  },
+  {
+    title: "La Cucaracha (Guitarra)",
+    difficulty: "easy",
+    bpm: 100,
+    instrument: "guitar_acoustic",
+    track_data: [
+      { time: 0, string: 2, fret: 1, name: "C4" },
+      { time: 300, string: 2, fret: 1, name: "C4" },
+      { time: 600, string: 2, fret: 1, name: "C4" },
+      { time: 900, string: 1, fret: 1, name: "F4" },
+      { time: 1500, string: 1, fret: 5, name: "A4" },
+      { time: 2400, string: 2, fret: 1, name: "C4" },
+      { time: 2700, string: 2, fret: 1, name: "C4" },
+      { time: 3000, string: 2, fret: 1, name: "C4" },
+      { time: 3300, string: 1, fret: 1, name: "F4" },
+      { time: 3900, string: 1, fret: 5, name: "A4" }
+    ]
+  },
 
   // GUITARRA ELÉCTRICA
   {
@@ -107,6 +169,90 @@ const expandedSongs = [
       { time: 3600, string: 3, fret: 2, name: "E4" },
       { time: 4200, string: 3, fret: 0, name: "D4" }
     ]
+  },
+
+  // FLAUTA DULCE (PENTAGRAMA)
+  {
+    title: "Flauta Dulce 101: Escala Básica",
+    difficulty: "easy",
+    bpm: 80,
+    instrument: "flute",
+    track_data: [
+      { time: 1000, string: 1, fret: 0, name: "C4" },
+      { time: 2000, string: 2, fret: 0, name: "D4" },
+      { time: 3000, string: 3, fret: 0, name: "E4" },
+      { time: 4000, string: 4, fret: 0, name: "F4" },
+      { time: 5000, string: 5, fret: 0, name: "G4" },
+      { time: 6000, string: 6, fret: 0, name: "A4" },
+      { time: 7000, string: 7, fret: 0, name: "B4" },
+      { time: 8000, string: 8, fret: 0, name: "C5" }
+    ]
+  },
+  {
+    title: "Estrellita Dónde Estás (Flauta Dulce)",
+    difficulty: "easy",
+    bpm: 90,
+    instrument: "flute",
+    track_data: [
+      { time: 0, string: 1, fret: 0, name: "C4" },
+      { time: 600, string: 1, fret: 0, name: "C4" },
+      { time: 1200, string: 5, fret: 0, name: "G4" },
+      { time: 1800, string: 5, fret: 0, name: "G4" },
+      { time: 2400, string: 6, fret: 0, name: "A4" },
+      { time: 3000, string: 6, fret: 0, name: "A4" },
+      { time: 3600, string: 5, fret: 0, name: "G4" },
+      
+      { time: 4800, string: 4, fret: 0, name: "F4" },
+      { time: 5400, string: 4, fret: 0, name: "F4" },
+      { time: 6000, string: 3, fret: 0, name: "E4" },
+      { time: 6600, string: 3, fret: 0, name: "E4" },
+      { time: 7200, string: 2, fret: 0, name: "D4" },
+      { time: 7800, string: 2, fret: 0, name: "D4" },
+      { time: 8400, string: 1, fret: 0, name: "C4" }
+    ]
+  },
+  {
+    title: "Himno a la Alegría (Flauta Dulce)",
+    difficulty: "easy",
+    bpm: 90,
+    instrument: "flute",
+    track_data: [
+      { time: 0, string: 3, fret: 0, name: "E4" },
+      { time: 600, string: 3, fret: 0, name: "E4" },
+      { time: 1200, string: 4, fret: 0, name: "F4" },
+      { time: 1800, string: 5, fret: 0, name: "G4" },
+      { time: 2400, string: 5, fret: 0, name: "G4" },
+      { time: 3000, string: 4, fret: 0, name: "F4" },
+      { time: 3600, string: 3, fret: 0, name: "E4" },
+      { time: 4200, string: 2, fret: 0, name: "D4" },
+      { time: 4800, string: 1, fret: 0, name: "C4" },
+      { time: 5400, string: 1, fret: 0, name: "C4" },
+      { time: 6000, string: 2, fret: 0, name: "D4" },
+      { time: 6600, string: 3, fret: 0, name: "E4" },
+      { time: 7200, string: 3, fret: 0, name: "E4" },
+      { time: 7800, string: 2, fret: 0, name: "D4" },
+      { time: 8400, string: 2, fret: 0, name: "D4" }
+    ]
+  },
+  {
+    title: "Titanic - My Heart Will Go On (Flauta)",
+    difficulty: "medium",
+    bpm: 95,
+    instrument: "flute",
+    track_data: [
+      { time: 0, string: 4, fret: 0, name: "F4" },
+      { time: 800, string: 5, fret: 0, name: "G4" },
+      { time: 1600, string: 6, fret: 0, name: "A4" },
+      { time: 2400, string: 5, fret: 0, name: "G4" },
+      { time: 3200, string: 4, fret: 0, name: "F4" },
+      { time: 4000, string: 5, fret: 0, name: "G4" },
+      { time: 4800, string: 8, fret: 0, name: "C5" },
+      { time: 5600, string: 6, fret: 0, name: "A4" },
+      { time: 6400, string: 5, fret: 0, name: "G4" },
+      { time: 7200, string: 4, fret: 0, name: "F4" },
+      { time: 8000, string: 2, fret: 0, name: "D4" },
+      { time: 8800, string: 1, fret: 0, name: "C4" }
+    ]
   }
 ];
 
@@ -115,11 +261,36 @@ async function seedExpanded() {
     await sequelize.authenticate();
     console.log('🔗 Conectado a la base de datos MySQL.');
     
+    // Sembrar dificultades catálogo si no existen
+    const Difficulty = require('./src/models/Difficulty');
+    await Difficulty.findOrCreate({ where: { level: 'easy' } });
+    await Difficulty.findOrCreate({ where: { level: 'medium' } });
+    await Difficulty.findOrCreate({ where: { level: 'hard' } });
+
+    // Sembrar instrumentos catálogo si no existen
+    const Instrument = require('./src/models/Instrument');
+    await Instrument.findOrCreate({ where: { name: 'ukulele' } });
+    await Instrument.findOrCreate({ where: { name: 'guitar_acoustic' } });
+    await Instrument.findOrCreate({ where: { name: 'guitar_electric' } });
+    await Instrument.findOrCreate({ where: { name: 'violin' } });
+    await Instrument.findOrCreate({ where: { name: 'flute' } });
+    await Instrument.findOrCreate({ where: { name: 'piano' } });
+    
     for (const song of expandedSongs) {
+      // Obtener dificultad asignada
+      const diffRecord = await Difficulty.findOne({ where: { level: song.difficulty } });
+      const difficultyId = diffRecord ? diffRecord.id : null;
+
       // Evitar duplicados por título e instrumento
       const [level, created] = await Level.findOrCreate({
         where: { title: song.title, instrument: song.instrument },
-        defaults: song
+        defaults: {
+          title: song.title,
+          instrument: song.instrument,
+          bpm: song.bpm,
+          track_data: song.track_data,
+          difficultyId: difficultyId
+        }
       });
       if (created) {
         console.log(`✅ Creada con éxito: "${song.title}" (${song.instrument})`);
