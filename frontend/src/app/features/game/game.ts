@@ -979,45 +979,90 @@ togglePause() {
 
   private drawInstrumentNeck(canvas: HTMLCanvasElement) {
     const instr = this.instrument();
+    const neckY = canvas.height * 0.4;
+
     if (this.isStaffInstrument) {
       // Dibujar un elegante fondo de pentagrama premium (estilo cristal de noche)
-      const grad = this.ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height * 0.4 + this.neckHeight);
+      const grad = this.ctx.createLinearGradient(0, neckY, 0, neckY + this.neckHeight);
       grad.addColorStop(0, "rgba(10, 10, 20, 0.9)");
       grad.addColorStop(1, "rgba(25, 20, 45, 0.95)");
       this.ctx.fillStyle = grad;
-      this.ctx.fillRect(0, canvas.height * 0.4, canvas.width, this.neckHeight);
+      this.ctx.fillRect(0, neckY, canvas.width, this.neckHeight);
       
       // Borde de neón azul sutil arriba y abajo para darle un toque premium
       this.ctx.strokeStyle = "rgba(0, 191, 255, 0.4)";
       this.ctx.lineWidth = 2;
       this.ctx.beginPath();
-      this.ctx.moveTo(0, canvas.height * 0.4);
-      this.ctx.lineTo(canvas.width, canvas.height * 0.4);
-      this.ctx.moveTo(0, canvas.height * 0.4 + this.neckHeight);
-      this.ctx.lineTo(canvas.width, canvas.height * 0.4 + this.neckHeight);
+      this.ctx.moveTo(0, neckY);
+      this.ctx.lineTo(canvas.width, neckY);
+      this.ctx.moveTo(0, neckY + this.neckHeight);
+      this.ctx.lineTo(canvas.width, neckY + this.neckHeight);
       this.ctx.stroke();
       return;
     }
 
-    let neckColor = "#666";
-    let fretboardColor = "#333";
+    // Configurar gradientes de madera en 3D súper pulidos para simular un mástil real
+    let neckGrad = this.ctx.createLinearGradient(0, neckY, 0, neckY + this.neckHeight);
 
     if (instr === 'guitar_acoustic') {
-      neckColor = "#8B4513"; // Saddle Brown
-      fretboardColor = "#5D2906"; 
+      neckGrad.addColorStop(0, "#2c1303");      // Sombra superior profunda
+      neckGrad.addColorStop(0.15, "#5d2906");   // Madera de palisandro/caoba
+      neckGrad.addColorStop(0.45, "#8f4415");   // Reflejo brillante cilíndrico
+      neckGrad.addColorStop(0.75, "#5d2906");
+      neckGrad.addColorStop(1, "#180a01");      // Sombra inferior
     } else if (instr === 'guitar_electric') {
-      neckColor = "#1a1a2e"; // Dark Blue/Black
-      fretboardColor = "#0f3460";
+      neckGrad.addColorStop(0, "#080812");
+      neckGrad.addColorStop(0.2, "#13132e");
+      neckGrad.addColorStop(0.5, "#2d2d6d");    // Azul eléctrico metalizado
+      neckGrad.addColorStop(0.8, "#13132e");
+      neckGrad.addColorStop(1, "#030308");
     } else if (instr === 'violin') {
-      neckColor = "#4a2c2a"; // Rosewood
-      fretboardColor = "#1a1110";
+      neckGrad.addColorStop(0, "#1c0d0c");
+      neckGrad.addColorStop(0.25, "#422624");
+      neckGrad.addColorStop(0.5, "#6d3834");    // Brillo caoba
+      neckGrad.addColorStop(0.75, "#422624");
+      neckGrad.addColorStop(1, "#0f0505");
+    } else {
+      // Ukelele por defecto (Madera de Koa dorada exótica)
+      neckGrad.addColorStop(0, "#3e2007");      // Sombra superior
+      neckGrad.addColorStop(0.15, "#7a430c");   // Tonalidad Koa
+      neckGrad.addColorStop(0.45, "#b56c23");   // Brillo dorado miel
+      neckGrad.addColorStop(0.75, "#7a430c");
+      neckGrad.addColorStop(1, "#271402");      // Sombra inferior
     }
 
-    this.ctx.fillStyle = neckColor; 
-    this.ctx.fillRect(0, canvas.height * 0.4, canvas.width, this.neckHeight); 
+    // Dibujar el mástil principal
+    this.ctx.fillStyle = neckGrad; 
+    this.ctx.fillRect(0, neckY, canvas.width, this.neckHeight); 
     
-    this.ctx.fillStyle = fretboardColor; 
-    this.ctx.fillRect(0, canvas.height * 0.4 + this.neckHeight, canvas.width, 20);
+    // Diapasón / Filo del mástil (efecto madera cortada / relieve en 3D)
+    const edgeGrad = this.ctx.createLinearGradient(0, neckY + this.neckHeight, 0, neckY + this.neckHeight + 12);
+    edgeGrad.addColorStop(0, "#110703");
+    edgeGrad.addColorStop(0.5, "#251206");
+    edgeGrad.addColorStop(1, "#000000");
+    this.ctx.fillStyle = edgeGrad; 
+    this.ctx.fillRect(0, neckY + this.neckHeight, canvas.width, 12);
+
+    // Dibujar una cejilla física (Nut) pulida y elegante de marfil a la altura del hitLineX
+    const nutWidth = 10;
+    const nutX = this.hitLineX - nutWidth / 2;
+    const nutGrad = this.ctx.createLinearGradient(nutX, 0, nutX + nutWidth, 0);
+    nutGrad.addColorStop(0, "#c4b197");
+    nutGrad.addColorStop(0.4, "#fdfaf0"); // Reflejo brillante de marfil
+    nutGrad.addColorStop(1, "#9e8971");
+    
+    this.ctx.save();
+    this.ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+    this.ctx.shadowBlur = 6;
+    this.ctx.shadowOffsetX = 2.5;
+    
+    this.ctx.fillStyle = nutGrad;
+    this.ctx.fillRect(nutX, neckY, nutWidth, this.neckHeight);
+    
+    this.ctx.strokeStyle = "rgba(0,0,0,0.25)";
+    this.ctx.lineWidth = 1;
+    this.ctx.strokeRect(nutX, neckY, nutWidth, this.neckHeight);
+    this.ctx.restore();
   }
 
   private drawStrings(canvas: HTMLCanvasElement) {
@@ -1115,13 +1160,32 @@ togglePause() {
     this.ctx.rect(0, neckY, canvas.width, this.neckHeight); 
     this.ctx.clip();
 
-    this.ctx.strokeStyle = "#333"; this.ctx.lineWidth = 4;
-
     for (let i = 0; i <= numLines + 1; i++) {
       const x = this.startX + this.linePositionX + (i * lineSpacing);
+      
+      // Dibujar trastes metálicos realistas en 3D en perspectiva
+      // 1. Sombra discreta del traste
+      this.ctx.strokeStyle = "rgba(0, 0, 0, 0.38)"; 
+      this.ctx.lineWidth = 4.5;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x + 0.8, neckY + this.neckHeight); 
+      this.ctx.lineTo(canvas.width / 2 + 0.8, 0); 
+      this.ctx.stroke();
+
+      // 2. Línea de metal del traste (Plateado)
+      this.ctx.strokeStyle = "#a2a2a6"; 
+      this.ctx.lineWidth = 2.5;
       this.ctx.beginPath();
       this.ctx.moveTo(x, neckY + this.neckHeight); 
       this.ctx.lineTo(canvas.width / 2, 0); 
+      this.ctx.stroke();
+
+      // 3. Brillo de luz blanco metálico en el centro
+      this.ctx.strokeStyle = "#ffffff"; 
+      this.ctx.lineWidth = 0.8;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x - 0.3, neckY + this.neckHeight); 
+      this.ctx.lineTo(canvas.width / 2 - 0.3, 0); 
       this.ctx.stroke();
     }
     this.ctx.restore();
