@@ -214,8 +214,14 @@ export class GameComponent implements AfterViewInit, OnDestroy {
           this.currentDifficulty.set(level.difficulty); 
           this.instrument.set(level.instrument || 'ukulele');
           const isGuitar = this.instrument().startsWith('guitar');
-          this.stringCount.set(isGuitar ? 6 : 4);
-          this.neckHeight = isGuitar ? 250 : 190;
+          const isFlute = this.instrument() === 'flute';
+          if (isFlute) {
+            this.stringCount.set(8);
+            this.neckHeight = 220;
+          } else {
+            this.stringCount.set(isGuitar ? 6 : 4);
+            this.neckHeight = isGuitar ? 250 : 190;
+          }
           this.audioService.setInstrument(this.instrument());
 
           const trackData = typeof level.track_data === 'string' ? JSON.parse(level.track_data) : level.track_data;
@@ -624,12 +630,17 @@ togglePause() {
       const notaBD = this.songData[this.currentNoteIndex];
       
       if (this.gameTime >= notaBD.time) {
-        let nombreNota = "C4"; 
-        for (const [name, data] of Object.entries(this.noteDefinitions)) {
-          if (data.string === notaBD.string && data.fret === notaBD.fret) { nombreNota = name; break; }
+        let nombreNota = notaBD.name || "C4"; 
+        if (!notaBD.name) {
+          for (const [name, data] of Object.entries(this.noteDefinitions)) {
+            if (String(data.string) === String(notaBD.string) && String(data.fret) === String(notaBD.fret)) { 
+              nombreNota = name; 
+              break; 
+            }
+          }
         }
         
-        this.activeNotes.push({ name: nombreNota, string: notaBD.string, x: this.canvasRef.nativeElement.width + 20, status: 'pending' });
+        this.activeNotes.push({ name: nombreNota, string: Number(notaBD.string), x: this.canvasRef.nativeElement.width + 20, status: 'pending' });
         this.notesSpawned++;
         this.currentNoteIndex++; 
       } else {
@@ -772,9 +783,12 @@ togglePause() {
     
     // Lanzar partículas
     if (status === 'perfect' || status === 'good' || status === 'poor') {
-      const stringSpacing = this.neckHeight / (this.stringCount() + 1);
       const neckY = this.canvasRef.nativeElement.height * 0.4;
-      const stringY = neckY + note.string * stringSpacing;
+      const centerY = neckY + this.neckHeight / 2;
+      const lineSpacing = 16;
+      const stringY = this.isStaffInstrument
+        ? this.getStaffNoteY(note.name, centerY, lineSpacing)
+        : neckY + note.string * (this.neckHeight / (this.stringCount() + 1));
       
       let particleColor = '#00FFFF';
       if (status === 'good') particleColor = '#00FF00';
