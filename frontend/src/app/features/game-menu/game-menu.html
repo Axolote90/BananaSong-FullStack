@@ -194,95 +194,130 @@
               @if (selectedInstrument() === 'flute') {
                 <div class="flute-diagram">
                   <div class="flute-container-wrapper">
-                    <!-- Agujero Trasero (Pulgar) -->
-                    <div class="thumb-hole-panel">
-                      <span class="hole-label">Pulgar (Atrás)</span>
-                      <div class="flute-hole thumb-hole" 
-                           [class.closed]="activeNote.fingers?.[0] === 1"
-                           [class.half]="activeNote.fingers?.[0] === 0.5"
-                           [class.open]="activeNote.fingers?.[0] === 0">
-                      </div>
-                    </div>
+                    <!-- El SVG estilizado y realista de la flauta dulce que incluye cuerpo y agujeros para precisión perfecta -->
+                    <svg viewBox="0 0 160 600" class="flute-svg-body" xmlns="http://www.w3.org/2000/svg">
+                      <defs>
+                        <!-- Degradado para agujeros semicubiertos -->
+                        <linearGradient id="halfBlue" x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="50%" stop-color="#007aff" />
+                          <stop offset="50%" stop-color="#333333" />
+                        </linearGradient>
+                      </defs>
 
-                    <div class="flute-instrument-body">
-                      <!-- El SVG estilizado y realista de la flauta dulce -->
-                      <svg viewBox="0 0 100 600" class="flute-svg-body" xmlns="http://www.w3.org/2000/svg">
-                        <defs>
-                          <linearGradient id="fluteWood" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#1e1108" />
-                            <stop offset="25%" stop-color="#3d2110" />
-                            <stop offset="50%" stop-color="#5c3218" />
-                            <stop offset="75%" stop-color="#3d2110" />
-                            <stop offset="100%" stop-color="#1e1108" />
-                          </linearGradient>
-                          <linearGradient id="fluteIvory" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#b8935c" />
-                            <stop offset="50%" stop-color="#fdf4e3" />
-                            <stop offset="100%" stop-color="#b8935c" />
-                          </linearGradient>
-                          <filter id="fluteShadow" x="-20%" y="-20%" width="140%" height="140%">
-                            <feDropShadow dx="0" dy="10" stdDeviation="6" flood-color="#000000" flood-opacity="0.6"/>
-                          </filter>
-                        </defs>
-                        <!-- Boquilla (Mouthpiece) -->
-                        <path d="M 38 20 L 62 20 L 60 70 L 40 70 Z" fill="url(#fluteIvory)" filter="url(#fluteShadow)" />
-                        <path d="M 40 70 L 60 70 C 60 100 58 130 56 160 C 44 130 40 100 40 70 Z" fill="url(#fluteWood)" />
-                        <!-- Anillo superior de marfil -->
-                        <path d="M 43 160 L 57 160 L 57 172 L 43 172 Z" fill="url(#fluteIvory)" />
-                        <!-- Cuerpo central -->
-                        <path d="M 44 172 L 56 172 L 50 490 L 50 490 Z" fill="url(#fluteWood)" />
-                        <!-- Anillo inferior -->
-                        <path d="M 49 490 L 51 490 L 52 502 L 48 502 Z" fill="url(#fluteIvory)" />
-                        <!-- Campana (Pie de la flauta) -->
-                        <path d="M 48 502 L 52 502 L 57 560 L 43 560 Z" fill="url(#fluteWood)" />
-                        <path d="M 43 560 L 57 560 Q 50 580 57 580 L 43 580 Q 50 580 43 560 Z" fill="url(#fluteIvory)" />
-                      </svg>
+                      <!-- Silueta de la Flauta Dulce (Relleno blanco, contorno negro) -->
+                      <path d="
+                        M 65 25 
+                        L 95 25 
+                        C 95 25, 105 45, 105 65 
+                        C 105 85, 98 105, 98 125 
+                        C 98 140, 104 145, 104 150 
+                        C 104 155, 98 160, 98 170 
+                        L 91 480 
+                        C 91 495, 97 500, 97 505 
+                        C 97 510, 91 515, 91 525 
+                        C 91 540, 107 565, 107 575 
+                        L 107 580 
+                        L 53 580 
+                        L 53 575 
+                        C 53 565, 69 540, 69 525 
+                        C 69 515, 63 510, 63 505 
+                        C 63 500, 69 495, 69 480 
+                        L 62 170 
+                        C 62 160, 56 155, 56 150 
+                        C 56 145, 62 140, 62 125 
+                        C 62 105, 55 85, 55 65 
+                        C 55 45, 65 25, 65 25 Z" 
+                        fill="#ffffff" 
+                        stroke="#333333" 
+                        stroke-width="2.5" 
+                        stroke-linejoin="round" />
 
-                      <!-- Agujeros colocados sobre el SVG con precisión física -->
-                      <div class="flute-holes-overlay">
-                        <!-- Agujeros simples 1 a 5 -->
-                        @for (holeState of activeNote.fingers?.slice(1, 6); track $index) {
-                          <div class="flute-hole-wrapper" [style.top.%]="25 + $index * 11">
-                            <span class="hole-number-tag">{{ $index + 1 }}</span>
-                            <div class="flute-hole" 
-                                 [class.closed]="holeState === 1"
-                                 [class.half]="holeState === 0.5"
-                                 [class.open]="holeState === 0">
-                            </div>
-                          </div>
-                        }
+                      <!-- Labium (Ventana/Fipple en la parte superior) -->
+                      <!-- Contorno de la rampa -->
+                      <path d="M 72 100 L 88 100 L 88 120 C 88 125, 72 125, 72 120 Z" fill="none" stroke="#333333" stroke-width="2" />
+                      <!-- Zona oscura de la ventana -->
+                      <rect x="74" y="102" width="12" height="13" fill="#333333" rx="1" />
+                      <!-- Borde superior -->
+                      <line x1="72" y1="100" x2="88" y2="100" stroke="#111111" stroke-width="4.5" />
 
-                        <!-- Agujero doble 6 -->
-                        <div class="flute-hole-wrapper double-hole-wrapper" style="top: 77%;">
-                          <span class="hole-number-tag">6</span>
-                          <div class="double-holes-container">
-                            <div class="flute-hole mini-hole"
-                                 [class.closed]="activeNote.fingers?.[6] === 1 || activeNote.fingers?.[6] === 0.5"
-                                 [class.open]="activeNote.fingers?.[6] === 0">
-                            </div>
-                            <div class="flute-hole mini-hole"
-                                 [class.closed]="activeNote.fingers?.[6] === 1"
-                                 [class.open]="activeNote.fingers?.[6] === 0 || activeNote.fingers?.[6] === 0.5">
-                            </div>
-                          </div>
-                        </div>
+                      <!-- --- AGUJEROS Y ESTADOS --- -->
 
-                        <!-- Agujero doble 7 -->
-                        <div class="flute-hole-wrapper double-hole-wrapper" style="top: 88%;">
-                          <span class="hole-number-tag">7</span>
-                          <div class="double-holes-container">
-                            <div class="flute-hole mini-hole"
-                                 [class.closed]="activeNote.fingers?.[7] === 1 || activeNote.fingers?.[7] === 0.5"
-                                 [class.open]="activeNote.fingers?.[7] === 0">
-                            </div>
-                            <div class="flute-hole mini-hole"
-                                 [class.closed]="activeNote.fingers?.[7] === 1"
-                                 [class.open]="activeNote.fingers?.[7] === 0 || activeNote.fingers?.[7] === 0.5">
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
+                      <!-- Agujero Trasero (Pulgar) - Se muestra a la izquierda de la flauta con una etiqueta -->
+                      <g>
+                        <circle cx="30" cy="230" r="9" 
+                                [attr.fill]="activeNote.fingers?.[0] === 1 ? '#007aff' : activeNote.fingers?.[0] === 0.5 ? 'url(#halfBlue)' : '#333333'" 
+                                stroke="#ffffff" stroke-width="1.5" />
+                        <text x="30" y="212" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="800">Pulgar</text>
+                        <!-- Pequeña línea indicadora -->
+                        <line x1="43" y1="230" x2="56" y2="230" stroke="rgba(255,255,255,0.4)" stroke-width="1" stroke-dasharray="2,2" />
+                      </g>
+
+                      <!-- Agujero 1 -->
+                      <g>
+                        <circle cx="80" cy="230" r="9" 
+                                [attr.fill]="activeNote.fingers?.[1] === 1 ? '#007aff' : activeNote.fingers?.[1] === 0.5 ? 'url(#halfBlue)' : '#333333'" 
+                                stroke="#ffffff" stroke-width="1.5" />
+                        <text x="100" y="234" fill="#ffffff" font-size="11" font-weight="800">1</text>
+                      </g>
+
+                      <!-- Agujero 2 -->
+                      <g>
+                        <circle cx="80" cy="280" r="9" 
+                                [attr.fill]="activeNote.fingers?.[2] === 1 ? '#007aff' : activeNote.fingers?.[2] === 0.5 ? 'url(#halfBlue)' : '#333333'" 
+                                stroke="#ffffff" stroke-width="1.5" />
+                        <text x="100" y="284" fill="#ffffff" font-size="11" font-weight="800">2</text>
+                      </g>
+
+                      <!-- Agujero 3 -->
+                      <g>
+                        <circle cx="80" cy="330" r="9" 
+                                [attr.fill]="activeNote.fingers?.[3] === 1 ? '#007aff' : activeNote.fingers?.[3] === 0.5 ? 'url(#halfBlue)' : '#333333'" 
+                                stroke="#ffffff" stroke-width="1.5" />
+                        <text x="100" y="334" fill="#ffffff" font-size="11" font-weight="800">3</text>
+                      </g>
+
+                      <!-- Agujero 4 -->
+                      <g>
+                        <circle cx="80" cy="380" r="9" 
+                                [attr.fill]="activeNote.fingers?.[4] === 1 ? '#007aff' : activeNote.fingers?.[4] === 0.5 ? 'url(#halfBlue)' : '#333333'" 
+                                stroke="#ffffff" stroke-width="1.5" />
+                        <text x="100" y="384" fill="#ffffff" font-size="11" font-weight="800">4</text>
+                      </g>
+
+                      <!-- Agujero 5 -->
+                      <g>
+                        <circle cx="80" cy="430" r="9" 
+                                [attr.fill]="activeNote.fingers?.[5] === 1 ? '#007aff' : activeNote.fingers?.[5] === 0.5 ? 'url(#halfBlue)' : '#333333'" 
+                                stroke="#ffffff" stroke-width="1.5" />
+                        <text x="100" y="434" fill="#ffffff" font-size="11" font-weight="800">5</text>
+                      </g>
+
+                      <!-- Agujero 6 (Doble) -->
+                      <g>
+                        <!-- Mini Izquierdo -->
+                        <circle cx="75" cy="480" r="5" 
+                                [attr.fill]="(activeNote.fingers?.[6] === 1 || activeNote.fingers?.[6] === 0.5) ? '#007aff' : '#333333'" 
+                                stroke="#ffffff" stroke-width="1" />
+                        <!-- Mini Derecho -->
+                        <circle cx="85" cy="480" r="5" 
+                                [attr.fill]="activeNote.fingers?.[6] === 1 ? '#007aff' : '#333333'" 
+                                stroke="#ffffff" stroke-width="1" />
+                        <text x="100" y="484" fill="#ffffff" font-size="11" font-weight="800">6</text>
+                      </g>
+
+                      <!-- Agujero 7 (Doble) -->
+                      <g>
+                        <!-- Mini Izquierdo -->
+                        <circle cx="75" cy="530" r="5" 
+                                [attr.fill]="(activeNote.fingers?.[7] === 1 || activeNote.fingers?.[7] === 0.5) ? '#007aff' : '#333333'" 
+                                stroke="#ffffff" stroke-width="1" />
+                        <!-- Mini Derecho -->
+                        <circle cx="85" cy="530" r="5" 
+                                [attr.fill]="activeNote.fingers?.[7] === 1 ? '#007aff' : '#333333'" 
+                                stroke="#ffffff" stroke-width="1" />
+                        <text x="100" y="534" fill="#ffffff" font-size="11" font-weight="800">7</text>
+                      </g>
+                    </svg>
                   </div>
                 </div>
               }
@@ -326,12 +361,16 @@
                       </div>
                     }
 
-                    <!-- Renderizar trastes verticales (1 a 5) -->
+                    <!-- Renderizar trastes verticales (1 a 5) en posiciones proporcionales -->
                     @for (fret of [1, 2, 3, 4, 5]; track fret; let fIdx = $index) {
                       <div class="fret-bar" 
-                           [style.left.%]="(fIdx / 4) * 100">
-                        <span class="fret-number">{{ fret }}</span>
+                           [style.left.%]="((fIdx + 1) / 5) * 100">
                       </div>
+                    }
+
+                    <!-- Fret numbers displayed centered over each space -->
+                    @for (fret of [1, 2, 3, 4, 5]; track fret; let fIdx = $index) {
+                      <span class="fret-number" [style.left.%]="((fIdx + 0.5) / 5) * 100">{{ fret }}</span>
                     }
 
                     <!-- Puntos de dedos en trastes -->
@@ -339,7 +378,7 @@
                       <div class="fret-dot"
                            [class.open-string]="pos.fret === 0"
                            [style.top.%]="((pos.string - 1) / (selectedInstrument() === 'ukulele' || selectedInstrument() === 'violin' ? 3 : 5)) * 100"
-                           [style.left.%]="pos.fret === 0 ? -12 : ((pos.fret - 1.5) / 4) * 100">
+                           [style.left.%]="pos.fret === 0 ? -6 : ((pos.fret - 0.5) / 5) * 100">
                         {{ pos.fret === 0 ? 'O' : pos.finger }}
                       </div>
                     }

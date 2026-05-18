@@ -839,105 +839,22 @@
   align-items: center;
   height: 100%;
   width: 100%;
+  padding: 10px 0;
 }
 
 .flute-container-wrapper {
   display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  height: 100%;
-}
-
-.thumb-hole-panel {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: rgba(255, 255, 255, 0.03);
-  padding: 8px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.flute-instrument-body {
-  position: relative;
-  width: 180px;
-  height: 480px;
-  display: flex;
   justify-content: center;
-}
-
-.flute-svg-body {
+  align-items: center;
   width: 100%;
   height: 100%;
 }
 
-.flute-holes-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
-}
-
-.flute-hole-wrapper {
-  position: absolute;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  z-index: 10;
-}
-
-.hole-number-tag {
-  font-size: 0.75rem;
-  font-weight: 800;
-  color: rgba(255, 255, 255, 0.4);
-  width: 15px;
-  text-align: right;
-}
-
-.flute-hole {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  transition: all 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  background: rgba(10, 5, 2, 0.95);
-  box-shadow: inset 0 2px 4px rgba(0,0,0,0.8), 0 2px 4px rgba(0,0,0,0.4);
-}
-
-.flute-hole.closed {
-  background: #f1c40f;
-  border-color: #ffffff;
-  box-shadow: 0 0 15px rgba(241, 196, 15, 0.8), inset 0 -2px 4px rgba(0,0,0,0.4);
-  transform: scale(1.1);
-}
-
-.flute-hole.half {
-  background: linear-gradient(90deg, #f1c40f 50%, rgba(10, 5, 2, 0.95) 50%);
-  border-color: #ffffff;
-  box-shadow: 0 0 10px rgba(241, 196, 15, 0.6);
-  transform: scale(1.05);
-}
-
-/* Agujeros dobles en la parte inferior */
-.double-hole-wrapper {
-  display: flex;
-  align-items: center;
-}
-
-.double-holes-container {
-  display: flex;
-  gap: 4px;
-}
-
-.double-holes-container .mini-hole {
-  width: 11px;
-  height: 11px;
-  border-width: 1.5px;
+.flute-svg-body {
+  height: 460px;
+  max-height: 75vh;
+  width: auto;
+  filter: drop-shadow(0 15px 30px rgba(0,0,0,0.5));
 }
 
 /* --- DIAGRAMA DE PIANO --- */
