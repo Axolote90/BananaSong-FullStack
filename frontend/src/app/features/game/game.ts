@@ -921,50 +921,100 @@ togglePause() {
 
   private drawInstrumentNeck(canvas: HTMLCanvasElement) {
     const instr = this.instrument();
+    const neckY = canvas.height * 0.4;
+
     if (this.isStaffInstrument) {
       // Dibujar un elegante fondo de pentagrama premium (estilo cristal de noche)
-      const grad = this.ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height * 0.4 + this.neckHeight);
-      grad.addColorStop(0, "rgba(10, 10, 20, 0.9)");
-      grad.addColorStop(1, "rgba(25, 20, 45, 0.95)");
+      const grad = this.ctx.createLinearGradient(0, neckY, 0, neckY + this.neckHeight);
+      grad.addColorStop(0, "rgba(8, 8, 16, 0.95)");
+      grad.addColorStop(0.5, "rgba(16, 12, 32, 0.98)");
+      grad.addColorStop(1, "rgba(24, 16, 44, 0.95)");
       this.ctx.fillStyle = grad;
-      this.ctx.fillRect(0, canvas.height * 0.4, canvas.width, this.neckHeight);
+      this.ctx.fillRect(0, neckY, canvas.width, this.neckHeight);
       
       // Borde de neón azul sutil arriba y abajo para darle un toque premium
-      this.ctx.strokeStyle = "rgba(0, 191, 255, 0.4)";
-      this.ctx.lineWidth = 2;
+      this.ctx.strokeStyle = "rgba(0, 191, 255, 0.5)";
+      this.ctx.lineWidth = 2.5;
       this.ctx.beginPath();
-      this.ctx.moveTo(0, canvas.height * 0.4);
-      this.ctx.lineTo(canvas.width, canvas.height * 0.4);
-      this.ctx.moveTo(0, canvas.height * 0.4 + this.neckHeight);
-      this.ctx.lineTo(canvas.width, canvas.height * 0.4 + this.neckHeight);
+      this.ctx.moveTo(0, neckY);
+      this.ctx.lineTo(canvas.width, neckY);
+      this.ctx.moveTo(0, neckY + this.neckHeight);
+      this.ctx.lineTo(canvas.width, neckY + this.neckHeight);
       this.ctx.stroke();
       return;
     }
 
-    let neckColor = "#666";
-    let fretboardColor = "#333";
+    // Configurar gradiente del mástil estilo madera 3D cilíndrica cilíndrica pulida
+    let neckGrad = this.ctx.createLinearGradient(0, neckY, 0, neckY + this.neckHeight);
 
     if (instr === 'guitar_acoustic') {
-      neckColor = "#8B4513"; // Saddle Brown
-      fretboardColor = "#5D2906"; 
+      neckGrad.addColorStop(0, "#2c1303");      // Sombra superior profunda
+      neckGrad.addColorStop(0.15, "#5d2906");   // Madera rica
+      neckGrad.addColorStop(0.4, "#8f4415");    // Brillo de cilindro (reflexión de luz)
+      neckGrad.addColorStop(0.75, "#5d2906");   // Madera rica
+      neckGrad.addColorStop(1, "#180a01");      // Sombra inferior profunda
     } else if (instr === 'guitar_electric') {
-      neckColor = "#1a1a2e"; // Dark Blue/Black
-      fretboardColor = "#0f3460";
+      neckGrad.addColorStop(0, "#080812");
+      neckGrad.addColorStop(0.2, "#13132e");
+      neckGrad.addColorStop(0.5, "#2d2d6d");    // Brillo azul eléctrico metálico
+      neckGrad.addColorStop(0.8, "#13132e");
+      neckGrad.addColorStop(1, "#030308");
     } else if (instr === 'violin') {
-      neckColor = "#4a2c2a"; // Rosewood
-      fretboardColor = "#1a1110";
+      neckGrad.addColorStop(0, "#1c0d0c");
+      neckGrad.addColorStop(0.25, "#422624");
+      neckGrad.addColorStop(0.5, "#6d3834");    // Brillo caoba
+      neckGrad.addColorStop(0.75, "#422624");
+      neckGrad.addColorStop(1, "#0f0505");
+    } else {
+      // Ukelele (Madera de Koa dorada)
+      neckGrad.addColorStop(0, "#3a1e05");
+      neckGrad.addColorStop(0.2, "#7a430c");
+      neckGrad.addColorStop(0.45, "#b56c23");   // Reflejo dorado
+      neckGrad.addColorStop(0.75, "#7a430c");
+      neckGrad.addColorStop(1, "#221102");
     }
 
-    this.ctx.fillStyle = neckColor; 
-    this.ctx.fillRect(0, canvas.height * 0.4, canvas.width, this.neckHeight); 
+    // Dibujar el mástil con la madera 3D
+    this.ctx.fillStyle = neckGrad; 
+    this.ctx.fillRect(0, neckY, canvas.width, this.neckHeight); 
     
-    this.ctx.fillStyle = fretboardColor; 
-    this.ctx.fillRect(0, canvas.height * 0.4 + this.neckHeight, canvas.width, 20);
+    // Diapasón / Filo del mástil (efecto madera cortada / 3D con relieve abajo)
+    const edgeGrad = this.ctx.createLinearGradient(0, neckY + this.neckHeight, 0, neckY + this.neckHeight + 12);
+    edgeGrad.addColorStop(0, "#0c0502");
+    edgeGrad.addColorStop(0.5, "#1f0f08");
+    edgeGrad.addColorStop(1, "#000000");
+    this.ctx.fillStyle = edgeGrad; 
+    this.ctx.fillRect(0, neckY + this.neckHeight, canvas.width, 12);
+
+    // Dibujar la cejilla física (Nut) en 3D en el hitLineX para string instruments
+    const nutWidth = 14;
+    const nutX = this.hitLineX - nutWidth / 2;
+    const nutGrad = this.ctx.createLinearGradient(nutX, 0, nutX + nutWidth, 0);
+    nutGrad.addColorStop(0, "#9c7c4c");
+    nutGrad.addColorStop(0.3, "#fcf3df"); // Brillo central
+    nutGrad.addColorStop(0.7, "#fcf3df");
+    nutGrad.addColorStop(1, "#6b512c");
+    
+    this.ctx.save();
+    this.ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+    this.ctx.shadowBlur = 8;
+    this.ctx.shadowOffsetX = 3;
+    
+    this.ctx.fillStyle = nutGrad;
+    this.ctx.fillRect(nutX, neckY, nutWidth, this.neckHeight);
+    
+    // Contorno fino de cejilla
+    this.ctx.strokeStyle = "rgba(0,0,0,0.3)";
+    this.ctx.lineWidth = 1;
+    this.ctx.strokeRect(nutX, neckY, nutWidth, this.neckHeight);
+    this.ctx.restore();
   }
 
   private drawStrings(canvas: HTMLCanvasElement) {
+    const neckY = canvas.height * 0.4;
+
     if (this.isStaffInstrument) {
-      const centerY = canvas.height * 0.4 + this.neckHeight / 2;
+      const centerY = neckY + this.neckHeight / 2;
       const lineSpacing = 16;
       const highlight = this.highlightArea();
 
@@ -1007,40 +1057,63 @@ togglePause() {
 
     const strings = this.stringCount();
     const stringSpacing = this.neckHeight / (strings + 1);
-    const neckY = canvas.height * 0.4;
     const instr = this.instrument();
 
     for (let i = 0; i < strings; i++) {
       const y = neckY + (i + 1) * stringSpacing;
-      this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(canvas.width, y);
-      
-      // Colores de cuerdas
+      let stringColor = "#FFF";
+      let lineWidth = 2;
+
+      // Colores de cuerdas 3D realistas
       if (instr === 'guitar_electric') {
-        this.ctx.strokeStyle = "#C0C0C0"; // Nickel/Steel
-        this.ctx.lineWidth = 1 + (i * 0.5); // Thickness varies slightly
+        stringColor = "#C0C0C0"; 
+        lineWidth = 1.2 + (i * 0.5); 
       } else if (instr === 'guitar_acoustic') {
-        this.ctx.strokeStyle = i < 3 ? "#E8E8E8" : "#CD7F32"; // Steel and Bronze
-        this.ctx.lineWidth = 1.2 + (i * 0.4);
+        stringColor = i < 3 ? "#E8E8E8" : "#CD7F32"; 
+        lineWidth = 1.4 + (i * 0.4);
       } else if (instr === 'violin') {
-        this.ctx.strokeStyle = "#DDD"; // Gut/Steel strings
-        this.ctx.lineWidth = 1.5;
+        stringColor = "#DDD"; 
+        lineWidth = 1.5;
       } else {
-        this.ctx.strokeStyle = i < 2 ? "#FFF" : "#F3BF23"; // Ukulele
-        this.ctx.lineWidth = 2;
+        stringColor = i < 2 ? "#FFF" : "#F3BF23"; 
+        lineWidth = 2.2;
       }
       
-      // Highlight logic
+      // Aplicar highlight logic
       const highlight = this.highlightArea();
       if (typeof highlight === 'number') {
         if (highlight !== i + 1) {
-          this.ctx.globalAlpha = 0.2; 
+          this.ctx.globalAlpha = 0.25; 
         } else {
           this.ctx.shadowColor = "#FFF";
-          this.ctx.shadowBlur = 10;
+          this.ctx.shadowBlur = 12;
         }
       }
 
+      // 1. Dibujar sombra de la cuerda en la madera
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, y + 2.5);
+      this.ctx.lineTo(canvas.width, y + 2.5);
+      this.ctx.strokeStyle = "rgba(0, 0, 0, 0.45)";
+      this.ctx.lineWidth = lineWidth + 0.8;
       this.ctx.stroke();
+
+      // 2. Dibujar cuerda principal metálica/nylon
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, y);
+      this.ctx.lineTo(canvas.width, y);
+      this.ctx.strokeStyle = stringColor;
+      this.ctx.lineWidth = lineWidth;
+      this.ctx.stroke();
+
+      // 3. Dibujar brillo especular central
+      this.ctx.beginPath();
+      this.ctx.moveTo(0, y - 0.5);
+      this.ctx.lineTo(canvas.width, y - 0.5);
+      this.ctx.strokeStyle = "rgba(255, 255, 255, 0.65)";
+      this.ctx.lineWidth = Math.max(0.6, lineWidth * 0.25);
+      this.ctx.stroke();
+
       this.ctx.globalAlpha = 1.0;
       this.ctx.shadowBlur = 0;
     }
@@ -1050,20 +1123,40 @@ togglePause() {
     const canvas = this.canvasRef.nativeElement;
     const neckY = canvas.height * 0.4;
     
-    const numLines = 13; const lineSpacing = (this.endX - this.startX) / numLines;
+    const numLines = 13; 
+    const lineSpacing = (this.endX - this.startX) / numLines;
 
     this.ctx.save();
     this.ctx.beginPath();
     this.ctx.rect(0, neckY, canvas.width, this.neckHeight); 
     this.ctx.clip();
 
-    this.ctx.strokeStyle = "#333"; this.ctx.lineWidth = 4;
-
     for (let i = 0; i <= numLines + 1; i++) {
       const x = this.startX + this.linePositionX + (i * lineSpacing);
+      
+      // Dibujar trastes de metal 3D en perspectiva
+      // 1. Sombra discreta del traste
+      this.ctx.strokeStyle = "rgba(0, 0, 0, 0.35)"; 
+      this.ctx.lineWidth = 5;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x + 1, neckY + this.neckHeight); 
+      this.ctx.lineTo(canvas.width / 2 + 1, 0); 
+      this.ctx.stroke();
+
+      // 2. Línea principal del traste (Plata metálica)
+      this.ctx.strokeStyle = "#9e9e9e"; 
+      this.ctx.lineWidth = 3;
       this.ctx.beginPath();
       this.ctx.moveTo(x, neckY + this.neckHeight); 
       this.ctx.lineTo(canvas.width / 2, 0); 
+      this.ctx.stroke();
+
+      // 3. Reflejo central blanco metálico
+      this.ctx.strokeStyle = "#ffffff"; 
+      this.ctx.lineWidth = 1;
+      this.ctx.beginPath();
+      this.ctx.moveTo(x - 0.5, neckY + this.neckHeight); 
+      this.ctx.lineTo(canvas.width / 2 - 0.5, 0); 
       this.ctx.stroke();
     }
     this.ctx.restore();
@@ -1077,12 +1170,8 @@ togglePause() {
     const noteRadius = 14;
     const distance = this.currentTargetNote.x - this.hitLineX;
     
-    // 🔥 FIX DEL INDICADOR: Y dinámica basada en el número de cuerdas o pentagrama
     const centerY = neckY + this.neckHeight / 2;
     const lineSpacing = 16;
-    const targetY = this.isStaffInstrument
-      ? this.getStaffNoteY(this.currentTargetNote.name, centerY, lineSpacing)
-      : neckY + this.currentTargetNote.string * stringSpacing;
     
     // Limit drawing to when the note is approaching or just passed
     if (distance < -60 || distance > 250) return;
@@ -1092,43 +1181,39 @@ togglePause() {
     this.ctx.rect(0, neckY, canvas.width, this.neckHeight); 
     this.ctx.clip();
 
-    // 1. Static Hit Point (Subtle ghost ring at the target location)
-    // Only becomes visible as the note gets closer to provide a reference point
-    const hitPointOpacity = Math.max(0, 1 - Math.abs(distance) / 100) * 0.2;
+    // 1. Ghost Ring estático en la línea de golpeo
+    const hitPointOpacity = Math.max(0, 1 - Math.abs(distance) / 100) * 0.25;
     if (hitPointOpacity > 0) {
       this.ctx.beginPath();
-      this.ctx.arc(this.hitLineX, this.indicatorY, noteRadius + 3, 0, Math.PI * 2);
+      this.ctx.arc(this.hitLineX, this.indicatorY, noteRadius + 4, 0, Math.PI * 2);
       this.ctx.strokeStyle = `rgba(255, 255, 255, ${hitPointOpacity})`;
-      this.ctx.lineWidth = 1.5;
-      this.ctx.setLineDash([2, 4]); // Dashed for a more subtle "target" look
+      this.ctx.lineWidth = 2;
+      this.ctx.setLineDash([2, 4]); 
       this.ctx.stroke();
-      this.ctx.setLineDash([]); // Reset dash
+      this.ctx.setLineDash([]); 
     }
 
-    // 2. Shrinking Approach Ring (The rhythmic cue)
+    // 2. Anillo de aproximación que se encoge con efecto neon 3D
     let approachRadius = noteRadius;
     let ringOpacity = 0.8;
-    let ringColor = "0, 255, 255"; // Cyan by default
+    let ringColor = "0, 255, 255"; // Cian por defecto
 
     if (distance > 0) {
-      // Ring shrinks from large to note size as it reaches hitLineX
-      // Factor 0.15 means at 200px away, ring is only 30px larger than note
       approachRadius = noteRadius + (distance * 0.15); 
       ringOpacity = Math.min(0.8, 1 - distance / 250);
       this.ctx.shadowColor = "#00FFFF";
     } else {
-      // Late: Ring stays at note size, fades out and turns red/orange
       approachRadius = noteRadius;
       ringOpacity = Math.max(0, 0.8 + distance / 60);
-      ringColor = "255, 100, 0"; // Orange-red for late
+      ringColor = "255, 100, 0"; // Naranja-rojo si es tarde
       this.ctx.shadowColor = "#FF6400";
     }
 
     this.ctx.beginPath();
     this.ctx.arc(this.currentTargetNote.x, this.indicatorY, approachRadius, 0, Math.PI * 2);
     this.ctx.strokeStyle = `rgba(${ringColor}, ${ringOpacity})`; 
-    this.ctx.lineWidth = 3;
-    this.ctx.shadowBlur = 12;
+    this.ctx.lineWidth = 3.5;
+    this.ctx.shadowBlur = 15;
     this.ctx.stroke();
 
     this.ctx.restore();
@@ -1147,12 +1232,12 @@ togglePause() {
         : neckY + note.string * stringSpacing;
       let color1, color2;
       switch (note.status) {
-        case 'perfect': color1 = "#00FFFF"; color2 = "#008888"; break; 
-        case 'good':    color1 = "#00FF00"; color2 = "#009900"; break; 
-        case 'late':    color1 = "#FFFF00"; color2 = "#888800"; break; 
-        case 'poor':    color1 = "#FF8800"; color2 = "#884400"; break; // Naranja
-        case 'miss':    color1 = "#FF0000"; color2 = "#990000"; break; 
-        default:        color1 = "#FDAB07"; color2 = "#C78602"; break; 
+        case 'perfect': color1 = "#00FFFF"; color2 = "#005555"; break; 
+        case 'good':    color1 = "#00FF00"; color2 = "#006600"; break; 
+        case 'late':    color1 = "#FFFF00"; color2 = "#666600"; break; 
+        case 'poor':    color1 = "#FF8800"; color2 = "#663300"; break; 
+        case 'miss':    color1 = "#FF0000"; color2 = "#660000"; break; 
+        default:        color1 = "#FDAB07"; color2 = "#8a5802"; break; 
       }
 
       // Dibujar líneas adicionales para instrumentos de pentagrama
@@ -1175,11 +1260,39 @@ togglePause() {
         }
       }
 
+      // Dibujar nota como esfera de cristal brillante premium en 3D
       this.ctx.save();
-      this.ctx.shadowColor = color1;
-      this.ctx.shadowBlur = 10;
-      this.ctx.beginPath(); this.ctx.arc(note.x, stringY, 14, 0, Math.PI, true); this.ctx.fillStyle = color1; this.ctx.fill();
-      this.ctx.beginPath(); this.ctx.arc(note.x, stringY, 14, 0, Math.PI, false); this.ctx.fillStyle = color2; this.ctx.fill();
+      
+      // Sombra proyectada en el diapasón
+      this.ctx.shadowColor = "rgba(0, 0, 0, 0.55)";
+      this.ctx.shadowBlur = 8;
+      this.ctx.shadowOffsetY = 4.5;
+
+      const radGrad = this.ctx.createRadialGradient(
+        note.x - 4, stringY - 4, 1.5, 
+        note.x, stringY, 14
+      );
+      radGrad.addColorStop(0, "#ffffff"); // Brillo superior
+      radGrad.addColorStop(0.2, color1);  // Color principal
+      radGrad.addColorStop(0.8, color2);  // Sombra interna
+      radGrad.addColorStop(1, "#000000");  // Bisel oscuro
+
+      this.ctx.beginPath(); 
+      this.ctx.arc(note.x, stringY, 14, 0, Math.PI * 2); 
+      this.ctx.fillStyle = radGrad; 
+      this.ctx.fill();
+      
+      // Quitar sombra para el reflejo y texto para evitar difuminados
+      this.ctx.shadowColor = "transparent";
+      this.ctx.shadowBlur = 0;
+      this.ctx.shadowOffsetY = 0;
+
+      // Dibujar brillo en medialuna en la parte superior izquierda (Reflejo del cristal)
+      this.ctx.beginPath();
+      this.ctx.ellipse(note.x - 5, stringY - 5, 5, 3, -Math.PI / 4, 0, Math.PI * 2);
+      this.ctx.fillStyle = "rgba(255, 255, 255, 0.55)";
+      this.ctx.fill();
+
       this.ctx.restore();
       
       let textToDraw = "";
@@ -1190,11 +1303,18 @@ togglePause() {
         textToDraw = def ? def.fret.toString() : "0";
       }
 
+      // Texto de alta definición con sombra de contraste
       this.ctx.fillStyle = "white"; 
-      this.ctx.font = this.isStaffInstrument ? "bold 11px Arial" : "bold 14px Arial";
+      this.ctx.font = this.isStaffInstrument ? "bold 11px Arial" : "bold 13px Arial";
       
       const textWidth = this.ctx.measureText(textToDraw).width;
-      this.ctx.fillText(textToDraw, note.x - textWidth / 2, stringY + 4);
+      
+      // Sombra fina del texto para máxima legibilidad
+      this.ctx.shadowColor = "rgba(0,0,0,0.8)";
+      this.ctx.shadowBlur = 3;
+      this.ctx.fillText(textToDraw, note.x - textWidth / 2, stringY + 4.5);
+      this.ctx.shadowColor = "transparent";
+      this.ctx.shadowBlur = 0;
     }
   }
 
