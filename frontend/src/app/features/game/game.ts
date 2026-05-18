@@ -1007,7 +1007,7 @@ togglePause() {
       return;
     }
 
-    let neckColor = "#B07D53"; // Café claro miel para el Ukelele / instrumentos por defecto
+    let neckColor = "#bf8c3f"; // Café dorado miel sugerido por el usuario
     let fretboardColor = "#704728"; // Café oscuro cálido para el diapasón por defecto
 
     if (instr === 'guitar_acoustic') {
