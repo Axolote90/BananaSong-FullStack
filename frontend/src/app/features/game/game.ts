@@ -12,7 +12,9 @@ interface ActiveNote {
   name: string;
   string: number;
   x: number;
-  status: 'pending' | 'pending_retry' | 'perfect' | 'good' | 'late' | 'poor' | 'miss'; 
+  status: 'pending' | 'pending_retry' | 'perfect' | 'good' | 'late' | 'poor' | 'miss';
+  isChord?: boolean;
+  chordName?: string;
 }
 
 interface Particle {
@@ -38,7 +40,7 @@ interface BgCircle {
   selector: 'app-game',
   standalone: true,
   imports: [CommonModule, FontAwesomeModule, TitleCasePipe],
-  templateUrl: './game.html', 
+  templateUrl: './game.html',
   styleUrl: './game.css'
 })
 export class GameComponent implements AfterViewInit, OnDestroy {
@@ -65,38 +67,38 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   private isAutoPlaying = false;
 
   // --- ESTADO DEL JUEGO ---
-  
+
   faPause = faPause;
   score = signal(0);
   gamePaused = signal(false);
-  isPracticeMode = signal(false); 
-  gameState = signal<'playing'>('playing'); 
-  
+  isPracticeMode = signal(false);
+  gameState = signal<'playing'>('playing');
+
   isGameOver = signal(false);
   isLevelUp = signal(false);
   newLevel = signal(1);
   accuracy = signal(0);
   stats = signal({ perfect: 0, good: 0, late: 0, poor: 0, miss: 0 });
   currentDifficulty = signal<string>('easy');
-  
+
   private currentLevelId: number | null = null;
   private maxCombo = 0;
   private currentCombo = 0;
   private hasStarted = false;
-  
+
   // --- CONTADORES Y REFERENCIAS ---
-  private totalNotesInLevel = 0; 
-  private notesSpawned = 0; 
-  private currentTargetNote: ActiveNote | null = null; 
+  private totalNotesInLevel = 0;
+  private notesSpawned = 0;
+  private currentTargetNote: ActiveNote | null = null;
 
   // --- METRÓNOMO ---
   private bpm = 120; // Pulsaciones por minuto (lo actualizaremos con la canción)
   private beatInterval = 0; // Espacio entre golpes en milisegundos
-  
+
   // MOTOR DE TIEMPO PERFECTO
-  private songData: any[] = []; 
-  private currentNoteIndex = 0; 
-  private gameTime = 0; 
+  private songData: any[] = [];
+  private currentNoteIndex = 0;
+  private gameTime = 0;
 
   // --- MECÁNICA DIDÁCTICA (REWIND & RETRY) ---
   private speedMultiplier = 1;
@@ -112,22 +114,22 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   private activeNotes: ActiveNote[] = [];
   private particles: Particle[] = [];
   private bgCircles: BgCircle[] = [];
-  
-  private hitLineX = 0; 
+
+  private hitLineX = 0;
   private startX = 0;
   private endX = 0;
-  
+
   // Instrumento actual
   public instrument = signal<string>('ukulele');
   public stringCount = signal<number>(4);
-  
+
   // Caché de gradientes
   private bgGradient!: CanvasGradient;
-  
+
   // Posición interpolada para el indicador tipo Yousician
   private indicatorX = -100;
   private indicatorY = -100;
-  
+
   // Prevención de doble disparo
   private lastHitNoteName: string | null = null;
   private lastHitTime: number = 0;
@@ -206,7 +208,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     }
 
     this.lastFrameTime = Date.now();
-    
+
     this.ngZone.runOutsideAngular(() => {
       this.gameLoop();
     });
@@ -220,7 +222,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
       this.currentLevelId = Number(id);
       this.levelService.getLevelById(Number(id)).subscribe({
         next: (level) => {
-          this.currentDifficulty.set(level.difficulty); 
+          this.currentDifficulty.set(level.difficulty);
           this.instrument.set(level.instrument || 'ukulele');
           const isGuitar = this.instrument().startsWith('guitar');
           const isFlute = this.instrument() === 'flute';
@@ -235,7 +237,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
           const trackData = typeof level.track_data === 'string' ? JSON.parse(level.track_data) : level.track_data;
           this.iniciarCancionReal(trackData);
-          this.startGame(); 
+          this.startGame();
         },
         error: (err) => console.error("Error al cargar la canción", err)
       });
@@ -246,7 +248,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
 
   setupTutorial() {
     this.isTutorialMode.set(true);
-    
+
     // Obtener el instrumento activo seleccionado por el usuario desde input, query params o AuthService (con fallback universal)
     const urlParams = new URLSearchParams(window.location.search);
     const queryInstrument = this.forcedInstrument || this.route.snapshot.queryParamMap.get('instrument') || urlParams.get('instrument');
@@ -255,7 +257,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     const isFlute = userInstrument === 'flute';
 
     this.instrument.set(userInstrument);
-    
+
     if (isFlute) {
       this.stringCount.set(8); // Escala de 8 notas en el pentagrama para el tutorial
       this.neckHeight = 220;
@@ -263,9 +265,9 @@ export class GameComponent implements AfterViewInit, OnDestroy {
       this.stringCount.set(isGuitar ? 6 : 4);
       this.neckHeight = isGuitar ? 250 : 190;
     }
-    
+
     this.audioService.setInstrument(userInstrument);
-    
+
     this.isTutorialPaused = true;
     this.isAutoPlaying = false;
 
@@ -368,7 +370,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
           this.tutorialDialog.set("Las notas aparecerán con su nombre en español (Do, Re, Mi...) para que sepas exactamente qué nota soplar.");
           this.highlightArea.set('note');
           this.isTutorialPaused = false;
-          setTimeout(() => { this.isTutorialPaused = true; }, 3500); 
+          setTimeout(() => { this.isTutorialPaused = true; }, 3500);
           break;
         case 5:
           this.tutorialDialog.set("Cuando el círculo de tiempo llegue a la nota, debes soplar esa nota. ¡Mira cómo lo hace la demostración!");
@@ -428,7 +430,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
           this.highlightArea.set('note');
           // Dejar que corra un poco de tiempo para mostrar las notas y luego pausar
           this.isTutorialPaused = false;
-          setTimeout(() => { this.isTutorialPaused = true; }, 3500); 
+          setTimeout(() => { this.isTutorialPaused = true; }, 3500);
           break;
         case 10:
           this.tutorialDialog.set("Cuando el círculo de tiempo llegue a la nota, debes tocarla. Mira cómo se hace:");
@@ -473,7 +475,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
           this.tutorialDialog.set("Estas son las notas. El número indica en qué traste debes poner tu dedo.");
           this.highlightArea.set('note');
           this.isTutorialPaused = false;
-          setTimeout(() => { this.isTutorialPaused = true; }, 3500); 
+          setTimeout(() => { this.isTutorialPaused = true; }, 3500);
           break;
         case 7:
           this.tutorialDialog.set("Cuando el círculo de tiempo llegue a la nota, debes tocarla. Mira cómo se hace:");
@@ -505,7 +507,7 @@ export class GameComponent implements AfterViewInit, OnDestroy {
   }
 
   // --- CONTROLES ---
-@HostListener('window:keydown', ['$event'])
+  @HostListener('window:keydown', ['$event'])
   handleKeyDown(event: KeyboardEvent) {
     // Mantenemos Escape para PC por comodidad
     if (event.key === 'Escape' && !this.isGameOver()) {
@@ -513,14 +515,14 @@ export class GameComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-@HostListener('window:blur')
+  @HostListener('window:blur')
   onWindowBlur() {
     if (!this.gamePaused() && !this.isGameOver()) {
       this.togglePause();
     }
   }
 
-togglePause() {
+  togglePause() {
     this.gamePaused.set(!this.gamePaused());
     if (!this.gamePaused()) {
       this.lastFrameTime = Date.now();
@@ -536,7 +538,7 @@ togglePause() {
     this.audioService.resumeAudio(); // Desbloquear Web Audio API con este clic
     this.gameState.set('playing');
     this.lastFrameTime = Date.now();
-    
+
     if (!this.hasStarted) {
       this.hasStarted = true;
       // Forzamos el reloj al inicio del countdown (-3000 ms)
@@ -550,7 +552,7 @@ togglePause() {
     this.gamePaused.set(false);
     this.isGameOver.set(false);
     this.gameState.set('playing');
-    
+
     this.score.set(0);
     this.accuracy.set(0);
     this.stats.set({ perfect: 0, good: 0, late: 0, poor: 0, miss: 0 });
@@ -559,7 +561,7 @@ togglePause() {
     this.speedMultiplier = 1;
     this.isRewinding = false;
     this.hasStarted = true; // El reinicio arranca directo
-    
+
     this.activeNotes = [];
     this.particles = [];
     this.indicatorX = -100;
@@ -567,13 +569,13 @@ togglePause() {
     this.lastHitNoteName = null;
     this.lastHitTime = 0;
     this.attackConsumed = false;
-    
+
     if (!this.isPracticeMode()) {
-       this.audioService.startRecording();
+      this.audioService.startRecording();
     }
-    
+
     this.iniciarCancionReal(this.songData); // Reinicia config y reloj
-    
+
     this.lastFrameTime = Date.now();
     cancelAnimationFrame(this.animationFrameId);
     this.ngZone.runOutsideAngular(() => this.gameLoop());
@@ -585,7 +587,7 @@ togglePause() {
 
     const now = Date.now();
     // ✨ Límite de tiempo (0.1s max) para evitar teletransportes si hay lag
-    const deltaTime = Math.min((now - this.lastFrameTime) / 1000, 0.1); 
+    const deltaTime = Math.min((now - this.lastFrameTime) / 1000, 0.1);
     this.lastFrameTime = now;
 
     this.updateLogic(deltaTime);
@@ -598,17 +600,17 @@ togglePause() {
     // Mover círculos de fondo flotantes a la misma velocidad y dirección que el scroll del juego
     const songSpeed = this.scrollSpeed * this.speedMultiplier * deltaTime;
     const canvasWidth = this.canvasRef.nativeElement.width;
-    
+
     for (let i = this.bgCircles.length - 1; i >= 0; i--) {
       const c = this.bgCircles[i];
       c.x -= songSpeed * c.speedFactor;
-      
+
       // Desvanecerse conforme se acercan al lado izquierdo (x < canvasWidth * 0.35)
       const fadeThreshold = canvasWidth * 0.35;
       if (c.x < fadeThreshold) {
         c.opacity = Math.max(0, (c.x / fadeThreshold) * 0.15);
       }
-      
+
       // Si salen de la pantalla por la izquierda (o por la derecha si rebobinamos)
       if (c.x < -20) {
         this.bgCircles[i] = {
@@ -656,7 +658,7 @@ togglePause() {
 
     // ✨ 2. AVANZAR EL RELOJ INTERNO (Afectado por speedMultiplier)
     const previousTime = this.gameTime;
-    this.gameTime += deltaTime * 1000 * this.speedMultiplier; 
+    this.gameTime += deltaTime * 1000 * this.speedMultiplier;
 
     // ✨ LÓGICA DEL METRÓNOMO ✨
     // Solo suena si vamos hacia adelante
@@ -671,21 +673,31 @@ togglePause() {
     // ✨ 3. LECTOR DE PARTITURAS (Genera las notas basadas en el reloj, no en setTimeout)
     while (this.currentNoteIndex < this.songData.length) {
       const notaBD = this.songData[this.currentNoteIndex];
-      
+
       if (this.gameTime >= notaBD.time) {
-        let nombreNota = notaBD.name || "C4"; 
+        let nombreNota = notaBD.name || "C4";
         if (!notaBD.name) {
           for (const [name, data] of Object.entries(this.noteDefinitions)) {
-            if (String(data.string) === String(notaBD.string) && String(data.fret) === String(notaBD.fret)) { 
-              nombreNota = name; 
-              break; 
+            if (String(data.string) === String(notaBD.string) && String(data.fret) === String(notaBD.fret)) {
+              nombreNota = name;
+              break;
             }
           }
         }
-        
-        this.activeNotes.push({ name: nombreNota, string: Number(notaBD.string), x: this.canvasRef.nativeElement.width + 20, status: 'pending' });
+
+        const isChord = !!notaBD.isChord || (nombreNota && /^[A-G][b#]?(?:maj|min|m|maj7|min7|7|dim|aug|sus2|sus4)?$/.test(nombreNota));
+        const chordName = isChord ? (notaBD.chordName || nombreNota) : undefined;
+
+        this.activeNotes.push({
+          name: nombreNota,
+          string: Number(notaBD.string || 1),
+          x: this.canvasRef.nativeElement.width + 20,
+          status: 'pending',
+          isChord: !!isChord,
+          chordName: chordName
+        });
         this.notesSpawned++;
-        this.currentNoteIndex++; 
+        this.currentNoteIndex++;
       } else {
         break; // Aún no es tiempo de la siguiente nota
       }
@@ -705,16 +717,18 @@ togglePause() {
     if (targetNoteIndex !== -1) {
       this.currentTargetNote = this.activeNotes[targetNoteIndex];
       const targetNote = this.currentTargetNote;
-      const distancia = Math.abs(targetNote.x - this.hitLineX); 
+      const distancia = Math.abs(targetNote.x - this.hitLineX);
 
       // 🔥 FIX DEL INDICADOR: Interpolación en updateLogic para compensar la velocidad
       const neckY = this.canvasRef.nativeElement.height * 0.4;
       const centerY = neckY + this.neckHeight / 2;
       const lineSpacing = 16;
-      const targetY = this.isStaffInstrument
-        ? this.getStaffNoteY(targetNote.name, centerY, lineSpacing)
-        : neckY + targetNote.string * (this.neckHeight / (this.stringCount() + 1));
-      
+      const targetY = targetNote.isChord
+        ? centerY
+        : (this.isStaffInstrument
+            ? this.getStaffNoteY(targetNote.name, centerY, lineSpacing)
+            : neckY + targetNote.string * (this.neckHeight / (this.stringCount() + 1)));
+
       if (this.indicatorX < 0) {
         this.indicatorX = targetNote.x;
         this.indicatorY = targetY;
@@ -722,13 +736,35 @@ togglePause() {
         this.indicatorX -= this.scrollSpeed * this.speedMultiplier * deltaTime; // Mover al mismo paso que las notas
         this.indicatorX += (targetNote.x - this.indicatorX) * 0.3; // Suavizado
         this.indicatorY += (targetY - this.indicatorY) * 0.3;
-      } 
+      }
 
       if (this.isPracticeMode() || (this.isTutorialMode() && this.isAutoPlaying)) {
         if (targetNote.x <= this.hitLineX) {
           this.marcarNota(targetNote, 'perfect', 20);
-          this.audioService.playNoteSound(targetNote.name);
           
+          if (targetNote.isChord) {
+            const chordsDef: { [key: string]: string[] } = {
+              'C': ['G4', 'C4', 'E4', 'C5'],
+              'G': ['G4', 'D4', 'G4', 'B4'],
+              'Am': ['A4', 'C4', 'E4', 'A4'],
+              'F': ['A4', 'C4', 'F4', 'A4'],
+              'D': ['A4', 'D4', 'F#4', 'A4'],
+              'A': ['A4', 'C#4', 'E4', 'A4'],
+              'E': ['G#4', 'B4', 'E4', 'B4'],
+              'Dm': ['A4', 'D4', 'F4', 'A4'],
+              'Em': ['G4', 'B4', 'E4', 'B4']
+            };
+            const chordName = targetNote.chordName || targetNote.name;
+            const notes = chordsDef[chordName] || [targetNote.name];
+            notes.forEach((n, idx) => {
+              setTimeout(() => {
+                this.audioService.playNoteSound(n);
+              }, idx * 50);
+            });
+          } else {
+            this.audioService.playNoteSound(targetNote.name);
+          }
+
           const isFlute = this.instrument() === 'flute';
           const demoStep = isFlute ? 6 : (this.stringCount() === 6 ? 11 : 8);
           if (this.isTutorialMode() && this.tutorialStep() === demoStep) {
@@ -741,7 +777,7 @@ togglePause() {
             }
           }
         }
-      } 
+      }
       else {
         // Solo evaluamos el hit si el juego NO está rebobinando
         if (!this.isRewinding) {
@@ -754,17 +790,34 @@ togglePause() {
           // 2. O que haya pasado mucho tiempo (debounce de respaldo)
           const allowHit = !isSameNote || (isAttack && !this.attackConsumed) || timeSinceLastHit > 450;
 
-          if (notaDetectadaVoz === targetNote.name && distancia < 80 && allowHit) { 
+          const chordRoots: { [key: string]: string } = {
+            'C': 'C', 'C7': 'C', 'G': 'G', 'G7': 'G', 
+            'Am': 'A', 'A7': 'A', 'F': 'F', 'D': 'D', 
+            'D7': 'D', 'Dm': 'D', 'E': 'E', 'E7': 'E', 
+            'Em': 'E', 'Bm': 'B', 'B7': 'B'
+          };
+          
+          let isNoteMatch = false;
+          if (notaDetectadaVoz) {
+            if (targetNote.isChord) {
+              const root = chordRoots[targetNote.chordName || targetNote.name] || targetNote.name;
+              isNoteMatch = notaDetectadaVoz.startsWith(root);
+            } else {
+              isNoteMatch = notaDetectadaVoz === targetNote.name;
+            }
+          }
+
+          if (isNoteMatch && distancia < 80 && allowHit) {
             const isRetry = targetNote.status === 'pending_retry';
-            
+
             this.lastHitNoteName = targetNote.name;
             this.lastHitTime = now;
             if (isAttack) this.attackConsumed = true; // Consumir este ataque
-            
-            if (distancia <= 20) { this.marcarNota(targetNote, isRetry ? 'poor' : 'perfect', isRetry ? 5 : 20); } 
-            else if (distancia <= 50) { this.marcarNota(targetNote, isRetry ? 'poor' : 'good', isRetry ? 2 : 10); } 
-            else { this.marcarNota(targetNote, isRetry ? 'poor' : 'late', isRetry ? 0 : 5); } 
-            
+
+            if (distancia <= 20) { this.marcarNota(targetNote, isRetry ? 'poor' : 'perfect', isRetry ? 5 : 20); }
+            else if (distancia <= 50) { this.marcarNota(targetNote, isRetry ? 'poor' : 'good', isRetry ? 2 : 10); }
+            else { this.marcarNota(targetNote, isRetry ? 'poor' : 'late', isRetry ? 0 : 5); }
+
             // Si estábamos en cámara lenta, volvemos a la normalidad instantáneamente
             if (this.speedMultiplier < 1) {
               this.speedMultiplier = 1;
@@ -782,7 +835,7 @@ togglePause() {
           targetNote.status = 'pending_retry';
           this.currentCombo = 0;
           this.triggerScreenShake();
-          
+
           this.isRewinding = true;
           this.speedMultiplier = -3; // Retrocede en el tiempo x3 rápido
           // Retrocedemos 2.5 segundos para dar tiempo, pero no antes del inicio
@@ -795,8 +848,8 @@ togglePause() {
 
     // 5. Mover las notas
     for (let i = this.activeNotes.length - 1; i >= 0; i--) {
-      this.activeNotes[i].x -= this.scrollSpeed * this.speedMultiplier * deltaTime; 
-      
+      this.activeNotes[i].x -= this.scrollSpeed * this.speedMultiplier * deltaTime;
+
       if (this.activeNotes[i].x < -50) {
         this.activeNotes.splice(i, 1);
       }
@@ -814,16 +867,16 @@ togglePause() {
     }
 
     // 6. Revisar si el juego terminó
-    if (this.totalNotesInLevel > 0 && 
-        this.notesSpawned === this.totalNotesInLevel && 
-        this.activeNotes.length === 0) {
+    if (this.totalNotesInLevel > 0 &&
+      this.notesSpawned === this.totalNotesInLevel &&
+      this.activeNotes.length === 0) {
       this.finalizarJuego();
     }
   }
 
   private marcarNota(note: ActiveNote, status: 'perfect' | 'good' | 'late' | 'poor' | 'miss', points: number) {
     note.status = status;
-    
+
     // Lanzar partículas
     if (status === 'perfect' || status === 'good' || status === 'poor') {
       const neckY = this.canvasRef.nativeElement.height * 0.4;
@@ -832,13 +885,13 @@ togglePause() {
       const stringY = this.isStaffInstrument
         ? this.getStaffNoteY(note.name, centerY, lineSpacing)
         : neckY + note.string * (this.neckHeight / (this.stringCount() + 1));
-      
+
       let particleColor = '#00FFFF';
       if (status === 'good') particleColor = '#00FF00';
       if (status === 'poor') particleColor = '#FF8800'; // Naranja para deficiente
-      
+
       this.spawnParticles(note.x, stringY, particleColor);
-      
+
       // Deficiente no aumenta el combo
       if (status !== 'poor') {
         this.currentCombo++;
@@ -887,7 +940,7 @@ togglePause() {
       this.isGameOver.set(true);
       const st = this.stats();
       const totalTocadas = st.perfect + st.good + st.late + st.poor + st.miss;
-      
+
       let acc = 0;
       if (totalTocadas > 0) {
         const puntosPrecision = (st.perfect * 1) + (st.good * 0.75) + (st.late * 0.5) + (st.poor * 0.25);
@@ -942,16 +995,16 @@ togglePause() {
   private draw() {
     const canvas = this.canvasRef.nativeElement;
     this.ctx.clearRect(0, 0, canvas.width, canvas.height);
-    
+
     this.drawBackground(canvas);
     this.drawInstrumentNeck(canvas);
-    
-    this.drawMovingLines(); 
+
+    this.drawMovingLines();
     this.drawStrings(canvas);
-    this.drawTargetIndicator(canvas); 
+    this.drawTargetIndicator(canvas);
     this.drawNotes();
     this.drawParticles();
-    
+
     this.drawBottomShadow(canvas);
   }
 
@@ -959,7 +1012,7 @@ togglePause() {
     // 1. Fondo de gris oscuro premium
     this.ctx.fillStyle = "#16161a";
     this.ctx.fillRect(0, 0, canvas.width, canvas.height * 0.4);
-    
+
     // 2. Dibujar círculos de fondo flotantes
     this.ctx.save();
     for (const c of this.bgCircles) {
@@ -994,7 +1047,7 @@ togglePause() {
       grad.addColorStop(1, "rgba(25, 20, 45, 0.95)");
       this.ctx.fillStyle = grad;
       this.ctx.fillRect(0, canvas.height * 0.4, canvas.width, this.neckHeight);
-      
+
       // Borde de neón azul sutil arriba y abajo para darle un toque premium
       this.ctx.strokeStyle = "rgba(0, 191, 255, 0.4)";
       this.ctx.lineWidth = 2;
@@ -1007,12 +1060,12 @@ togglePause() {
       return;
     }
 
-    let neckColor = "#bf8c3f"; // Café dorado miel sugerido por el usuario
+    let neckColor = "#996b43"; // Café dorado miel sugerido por el usuario
     let fretboardColor = "#704728"; // Café oscuro cálido para el diapasón por defecto
 
     if (instr === 'guitar_acoustic') {
       neckColor = "#8B4513"; // Saddle Brown
-      fretboardColor = "#5D2906"; 
+      fretboardColor = "#5D2906";
     } else if (instr === 'guitar_electric') {
       neckColor = "#1a1a2e"; // Dark Blue/Black
       fretboardColor = "#0f3460";
@@ -1021,10 +1074,10 @@ togglePause() {
       fretboardColor = "#1a1110";
     }
 
-    this.ctx.fillStyle = neckColor; 
-    this.ctx.fillRect(0, canvas.height * 0.4, canvas.width, this.neckHeight); 
-    
-    this.ctx.fillStyle = fretboardColor; 
+    this.ctx.fillStyle = neckColor;
+    this.ctx.fillRect(0, canvas.height * 0.4, canvas.width, this.neckHeight);
+
+    this.ctx.fillStyle = fretboardColor;
     this.ctx.fillRect(0, canvas.height * 0.4 + this.neckHeight, canvas.width, 20);
   }
 
@@ -1040,7 +1093,7 @@ togglePause() {
         this.ctx.beginPath();
         this.ctx.moveTo(0, y);
         this.ctx.lineTo(canvas.width, y);
-        
+
         this.ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
         this.ctx.lineWidth = 1.5;
 
@@ -1058,7 +1111,7 @@ togglePause() {
       // Dibujar la clave de sol estilizada en Unicode
       this.ctx.save();
       this.ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-      
+
       if (highlight === 'clef') {
         this.ctx.fillStyle = "rgba(0, 255, 255, 1)";
         this.ctx.shadowColor = "#00FFFF";
@@ -1079,7 +1132,7 @@ togglePause() {
     for (let i = 0; i < strings; i++) {
       const y = neckY + (i + 1) * stringSpacing;
       this.ctx.beginPath(); this.ctx.moveTo(0, y); this.ctx.lineTo(canvas.width, y);
-      
+
       // Colores de cuerdas
       if (instr === 'guitar_electric') {
         this.ctx.strokeStyle = "#C0C0C0"; // Nickel/Steel
@@ -1094,12 +1147,12 @@ togglePause() {
         this.ctx.strokeStyle = i < 2 ? "#FFF" : "#F3BF23"; // Ukulele
         this.ctx.lineWidth = 2;
       }
-      
+
       // Highlight logic
       const highlight = this.highlightArea();
       if (typeof highlight === 'number') {
         if (highlight !== i + 1) {
-          this.ctx.globalAlpha = 0.2; 
+          this.ctx.globalAlpha = 0.2;
         } else {
           this.ctx.shadowColor = "#FFF";
           this.ctx.shadowBlur = 10;
@@ -1115,12 +1168,12 @@ togglePause() {
   private drawMovingLines() {
     const canvas = this.canvasRef.nativeElement;
     const neckY = canvas.height * 0.4;
-    
+
     const numLines = 13; const lineSpacing = (this.endX - this.startX) / numLines;
 
     this.ctx.save();
     this.ctx.beginPath();
-    this.ctx.rect(0, neckY, canvas.width, this.neckHeight); 
+    this.ctx.rect(0, neckY, canvas.width, this.neckHeight);
     this.ctx.clip();
 
     this.ctx.strokeStyle = "#333"; this.ctx.lineWidth = 4;
@@ -1128,8 +1181,8 @@ togglePause() {
     for (let i = 0; i <= numLines + 1; i++) {
       const x = this.startX + this.linePositionX + (i * lineSpacing);
       this.ctx.beginPath();
-      this.ctx.moveTo(x, neckY + this.neckHeight); 
-      this.ctx.lineTo(canvas.width / 2, 0); 
+      this.ctx.moveTo(x, neckY + this.neckHeight);
+      this.ctx.lineTo(canvas.width / 2, 0);
       this.ctx.stroke();
     }
     this.ctx.restore();
@@ -1142,20 +1195,22 @@ togglePause() {
     const stringSpacing = this.neckHeight / (this.stringCount() + 1);
     const noteRadius = 14;
     const distance = this.currentTargetNote.x - this.hitLineX;
-    
+
     // 🔥 FIX DEL INDICADOR: Y dinámica basada en el número de cuerdas o pentagrama
     const centerY = neckY + this.neckHeight / 2;
     const lineSpacing = 16;
-    const targetY = this.isStaffInstrument
-      ? this.getStaffNoteY(this.currentTargetNote.name, centerY, lineSpacing)
-      : neckY + this.currentTargetNote.string * stringSpacing;
-    
+    const targetY = this.currentTargetNote.isChord
+      ? centerY
+      : (this.isStaffInstrument
+          ? this.getStaffNoteY(this.currentTargetNote.name, centerY, lineSpacing)
+          : neckY + this.currentTargetNote.string * stringSpacing);
+
     // Limit drawing to when the note is approaching or just passed
     if (distance < -60 || distance > 250) return;
 
-    this.ctx.save(); 
+    this.ctx.save();
     this.ctx.beginPath();
-    this.ctx.rect(0, neckY, canvas.width, this.neckHeight); 
+    this.ctx.rect(0, neckY, canvas.width, this.neckHeight);
     this.ctx.clip();
 
     // 1. Static Hit Point (Subtle ghost ring at the target location)
@@ -1179,7 +1234,7 @@ togglePause() {
     if (distance > 0) {
       // Ring shrinks from large to note size as it reaches hitLineX
       // Factor 0.15 means at 200px away, ring is only 30px larger than note
-      approachRadius = noteRadius + (distance * 0.15); 
+      approachRadius = noteRadius + (distance * 0.15);
       ringOpacity = Math.min(0.8, 1 - distance / 250);
       this.ctx.shadowColor = "#00FFFF";
     } else {
@@ -1192,7 +1247,7 @@ togglePause() {
 
     this.ctx.beginPath();
     this.ctx.arc(this.currentTargetNote.x, this.indicatorY, approachRadius, 0, Math.PI * 2);
-    this.ctx.strokeStyle = `rgba(${ringColor}, ${ringOpacity})`; 
+    this.ctx.strokeStyle = `rgba(${ringColor}, ${ringOpacity})`;
     this.ctx.lineWidth = 3;
     this.ctx.shadowBlur = 12;
     this.ctx.stroke();
@@ -1203,7 +1258,7 @@ togglePause() {
   private drawNotes() {
     const canvas = this.canvasRef.nativeElement;
     const neckY = this.canvasRef.nativeElement.height * 0.4;
-    const stringSpacing = this.neckHeight / (this.stringCount() + 1); 
+    const stringSpacing = this.neckHeight / (this.stringCount() + 1);
     const centerY = neckY + this.neckHeight / 2;
     const lineSpacing = 16;
 
@@ -1213,12 +1268,77 @@ togglePause() {
         : neckY + note.string * stringSpacing;
       let color1, color2;
       switch (note.status) {
-        case 'perfect': color1 = "#00FFFF"; color2 = "#008888"; break; 
-        case 'good':    color1 = "#00FF00"; color2 = "#009900"; break; 
-        case 'late':    color1 = "#FFFF00"; color2 = "#888800"; break; 
-        case 'poor':    color1 = "#FF8800"; color2 = "#884400"; break; // Naranja
-        case 'miss':    color1 = "#FF0000"; color2 = "#990000"; break; 
-        default:        color1 = "#FDAB07"; color2 = "#C78602"; break; 
+        case 'perfect': color1 = "#00FFFF"; color2 = "#008888"; break;
+        case 'good': color1 = "#00FF00"; color2 = "#009900"; break;
+        case 'late': color1 = "#FFFF00"; color2 = "#888800"; break;
+        case 'poor': color1 = "#FF8800"; color2 = "#884400"; break; // Naranja
+        case 'miss': color1 = "#FF0000"; color2 = "#990000"; break;
+        default: color1 = "#FDAB07"; color2 = "#C78602"; break;
+      }
+
+      if (note.isChord) {
+        // Dibujar barra del acorde con la perspectiva del mástil
+        const yStart = neckY + 1 * stringSpacing;
+        const yEnd = neckY + this.stringCount() * stringSpacing;
+        
+        const bottomY = neckY + this.neckHeight;
+        
+        const xStart = canvas.width / 2 + (note.x - canvas.width / 2) * (yStart / bottomY);
+        const xEnd = canvas.width / 2 + (note.x - canvas.width / 2) * (yEnd / bottomY);
+        
+        this.ctx.save();
+        
+        // Sombra del acorde
+        this.ctx.shadowColor = color1;
+        this.ctx.shadowBlur = 12;
+        
+        // Barra principal (color del estado)
+        this.ctx.beginPath();
+        this.ctx.moveTo(xStart, yStart);
+        this.ctx.lineTo(xEnd, yEnd);
+        this.ctx.lineWidth = 18; // Ancho de la barra
+        this.ctx.lineCap = "round";
+        
+        // Crear un gradiente lineal a lo largo de la barra para que luzca 3D
+        const barGrad = this.ctx.createLinearGradient(xStart, yStart, xEnd, yEnd);
+        barGrad.addColorStop(0, color1);
+        barGrad.addColorStop(0.5, color2);
+        barGrad.addColorStop(1, color1);
+        
+        this.ctx.strokeStyle = barGrad;
+        this.ctx.stroke();
+        
+        // Brillo interno 3D (blanco translúcido en el centro)
+        this.ctx.shadowBlur = 0; // Desactivar sombra para el brillo interno
+        this.ctx.beginPath();
+        this.ctx.moveTo(xStart, yStart);
+        this.ctx.lineTo(xEnd, yEnd);
+        this.ctx.lineWidth = 5;
+        this.ctx.strokeStyle = "rgba(255, 255, 255, 0.4)";
+        this.ctx.stroke();
+        
+        this.ctx.restore();
+        
+        // Dibujar círculo contenedor del texto en medio de la barra
+        const xCenter = (xStart + xEnd) / 2;
+        const yCenter = (yStart + yEnd) / 2;
+        
+        this.ctx.beginPath();
+        this.ctx.arc(xCenter, yCenter, 14, 0, Math.PI * 2);
+        this.ctx.fillStyle = "rgba(0, 0, 0, 0.85)";
+        this.ctx.fill();
+        this.ctx.strokeStyle = color1;
+        this.ctx.lineWidth = 1.5;
+        this.ctx.stroke();
+        
+        // Dibujar texto del nombre del acorde (Do, Re, Mi, C, G, Am, etc.)
+        this.ctx.fillStyle = "white";
+        this.ctx.font = "bold 13px Arial";
+        const textToDraw = note.chordName || note.name;
+        const textWidth = this.ctx.measureText(textToDraw).width;
+        this.ctx.fillText(textToDraw, xCenter - textWidth / 2, yCenter + 5);
+        
+        continue; // Siguiente nota, saltamos el dibujo de nota individual
       }
 
       // Dibujar líneas adicionales para instrumentos de pentagrama
@@ -1247,7 +1367,7 @@ togglePause() {
       this.ctx.beginPath(); this.ctx.arc(note.x, stringY, 14, 0, Math.PI, true); this.ctx.fillStyle = color1; this.ctx.fill();
       this.ctx.beginPath(); this.ctx.arc(note.x, stringY, 14, 0, Math.PI, false); this.ctx.fillStyle = color2; this.ctx.fill();
       this.ctx.restore();
-      
+
       let textToDraw = "";
       if (this.isStaffInstrument) {
         textToDraw = this.getSpanishNoteName(note.name);
@@ -1256,9 +1376,9 @@ togglePause() {
         textToDraw = def ? def.fret.toString() : "0";
       }
 
-      this.ctx.fillStyle = "white"; 
+      this.ctx.fillStyle = "white";
       this.ctx.font = this.isStaffInstrument ? "bold 11px Arial" : "bold 14px Arial";
-      
+
       const textWidth = this.ctx.measureText(textToDraw).width;
       this.ctx.fillText(textToDraw, note.x - textWidth / 2, stringY + 4);
     }
@@ -1280,7 +1400,7 @@ togglePause() {
 
   private drawBottomShadow(canvas: HTMLCanvasElement) {
     const shadowY = canvas.height * 0.4 + this.neckHeight;
-    this.ctx.fillStyle = "rgba(0, 0, 0, 0.75)"; 
+    this.ctx.fillStyle = "rgba(0, 0, 0, 0.75)";
     this.ctx.fillRect(0, shadowY, canvas.width, canvas.height - shadowY);
   }
 
@@ -1291,12 +1411,12 @@ togglePause() {
     canvas.height = window.innerHeight;
     this.startX = -canvas.width;
     this.endX = 7 * canvas.width;
-    this.hitLineX = canvas.width * 0.3; 
-    
+    this.hitLineX = canvas.width * 0.3;
+
     // Generar gradientes cacheados para mejor rendimiento
     this.bgGradient = this.ctx.createLinearGradient(0, 0, 0, canvas.height * 0.4);
-    this.bgGradient.addColorStop(0, "rgba(0, 0, 0, 0.0)"); 
-    this.bgGradient.addColorStop(1, "rgba(0, 0, 0, 0.6)"); 
+    this.bgGradient.addColorStop(0, "rgba(0, 0, 0, 0.0)");
+    this.bgGradient.addColorStop(1, "rgba(0, 0, 0, 0.6)");
 
     // Inicializar los círculos de fondo flotantes
     this.initBgCircles();
@@ -1322,14 +1442,14 @@ togglePause() {
     this.notesSpawned = 0;
 
     // Ordenamos las notas por tiempo de menor a mayor
-    this.songData = trackData.sort((a, b) => a.time - b.time); 
+    this.songData = trackData.sort((a, b) => a.time - b.time);
     this.currentNoteIndex = 0;
 
     // ✨ CONFIGURAR METRÓNOMO
     // Si el nivel tiene BPM en la BD, lo usamos, si no, 120 por defecto
     this.bpm = 120; // Aquí podrías hacer: this.bpm = level.bpm || 120;
     this.beatInterval = 60000 / this.bpm; // 60k ms / BPM = ms por golpe
-    
+
     // Restamos un milisegundo para forzar a que el metrónomo suene en el primer frame (cruce matemático)
     this.gameTime = -3000 - 1;
   }
@@ -1338,11 +1458,11 @@ togglePause() {
   private triggerScreenShake() {
     // Buscamos el contenedor principal por su clase HTML
     const gameContainer = document.querySelector('.game-container') as HTMLElement;
-    
+
     if (gameContainer) {
       // 1. Añadimos la clase que inicia la animación CSS
       gameContainer.classList.add('shake-effect');
-      
+
       // 2. Usamos setTimeout para quitar la clase después de 300ms (0.3s)
       // Esto 'resetea' la animación para que pueda volver a ocurrir
       setTimeout(() => {
